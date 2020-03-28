@@ -1,0 +1,304 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Part 4: Land Cover Mapping &mdash; GEE CCDC Tools 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Obtaining coefficients, changes and synthetic images" href="../ccdc.html" />
+    <link rel="prev" title="Part 3: Classify time series segments" href="classify.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> GEE CCDC Tools
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../background.html">Background</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../lctut.html">Land cover tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="change.html">Part 1: Submit Change Detection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="training.html">Part 2: Prepare training data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classify.html">Part 3: Classify time series segments</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Part 4: Land Cover Mapping</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mapping-requirements">Mapping Requirements</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../ccdc.html">Obtaining coefficients, changes and synthetic images</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">GEE CCDC Tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../lctut.html">Land cover tutorial</a> &raquo;</li>
+        
+      <li>Part 4: Land Cover Mapping</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/lctutorial/mapping.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="part-4-land-cover-mapping">
+<h1>Part 4: Land Cover Mapping<a class="headerlink" href="#part-4-land-cover-mapping" title="Permalink to this headline">¶</a></h1>
+<p>The output of part 3 was a stack of land cover classifications organized
+by CCDC models. Each pixel contains different model start and end times,
+so the land cover label for each band corresponds to different time
+periods for each pixel. Well that’s not very helpful, is it?</p>
+<p>Part 4 of this tutorial demonstrates how to go from the classification
+“stack” to a map of land cover at a specific year, or change between
+years.</p>
+<div class="section" id="mapping-requirements">
+<h2>Mapping Requirements<a class="headerlink" href="#mapping-requirements" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>A classified ‘stack’ of as demonstrated in Part 3 of this tutorial</p></li>
+</ul>
+<p>To go from a classified image stack to a classification at a date is
+relatively straightforward. To get a land cover classification at a
+specific date we can use the ‘getLcAtDate’ function in our API.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">utils</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;projects/GLANCE:ccdcUtilities/api&#39;</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">classificationStack</span> <span class="o">=</span> <span class="s1">&#39;/PATH/TO/IMAGE/STACK&#39;</span>
+<span class="kd">var</span> <span class="nx">dateOfClassification</span> <span class="o">=</span> <span class="s1">&#39;2014-03-27&#39;</span>
+<span class="kd">var</span> <span class="nx">numberOfSegments</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="kd">var</span> <span class="nx">ccdVersion</span> <span class="o">=</span> <span class="s1">&#39;v2&#39;</span>
+<span class="kd">var</span> <span class="nx">metadataFilter</span> <span class="o">=</span> <span class="s1">&#39;v5_&#39;</span>
+<span class="kd">var</span> <span class="nx">behavior</span> <span class="o">=</span> <span class="s1">&#39;after&#39;</span>
+<span class="kd">var</span> <span class="nx">matchingDate</span> <span class="o">=</span> <span class="nx">classUtils</span><span class="p">.</span><span class="nx">getLcAtDate</span><span class="p">(</span><span class="nx">classificationStack</span><span class="p">,</span>
+    <span class="nx">dateOfClassification</span><span class="p">,</span>
+    <span class="nx">numberOfSegments</span><span class="p">,</span>
+    <span class="nx">ccdVersion</span><span class="p">,</span>
+    <span class="nx">metadataFilter</span><span class="p">,</span>
+    <span class="nx">behavior</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This can easily be extended to map change between two dates. In this
+example we calculate the post-deforestation land cover between 2000 and
+2018</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">class2000</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">getLcAtDate</span><span class="p">(</span><span class="nx">classificationStack</span><span class="p">,</span>
+    <span class="s1">&#39;2000-01-01&#39;</span><span class="p">,</span>
+    <span class="nx">numberOfSegments</span><span class="p">,</span>
+    <span class="nx">ccdVersion</span><span class="p">,</span>
+    <span class="nx">metadataFilter</span><span class="p">,</span>
+    <span class="s1">&#39;after&#39;</span><span class="p">)</span>
+
+<span class="kd">var</span> <span class="nx">class2018</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">getLcAtDate</span><span class="p">(</span><span class="nx">classificationStack</span><span class="p">,</span>
+    <span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span>
+    <span class="nx">numberOfSegments</span><span class="p">,</span>
+    <span class="nx">ccdVersion</span><span class="p">,</span>
+    <span class="nx">metadataFilter</span><span class="p">,</span>
+    <span class="s1">&#39;before&#39;</span><span class="p">)</span>
+
+<span class="kd">var</span> <span class="nx">deforestation</span> <span class="o">=</span> <span class="nx">class2000</span><span class="p">.</span><span class="nx">eq</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">and</span><span class="p">(</span><span class="nx">class2018</span><span class="p">.</span><span class="nx">neq</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+
+<span class="nx">Map</span><span class="p">.</span><span class="nx">addLayer</span><span class="p">(</span><span class="nx">deforestation</span><span class="p">.</span><span class="nx">selfMask</span><span class="p">(),</span>
+    <span class="p">{</span><span class="nx">palette</span><span class="o">:</span> <span class="s1">&#39;red&#39;</span><span class="p">},</span>
+    <span class="s1">&#39;Deforestation&#39;</span><span class="p">)</span>
+
+<span class="kd">var</span> <span class="nx">postDefClass</span> <span class="o">=</span> <span class="nx">class2018</span><span class="p">.</span><span class="nx">updateMask</span><span class="p">(</span><span class="nx">deforestation</span><span class="p">)</span>
+
+<span class="kd">var</span> <span class="nx">viz</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Results</span><span class="p">.</span><span class="nx">viz</span>
+
+<span class="nx">Map</span><span class="p">.</span><span class="nx">addLayer</span><span class="p">(</span><span class="nx">postDefClass</span><span class="p">,</span>
+    <span class="nx">viz</span><span class="p">,</span>
+    <span class="s1">&#39;Post-Deforestation Class&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the post-disturbance land cover is almost entirely from the
+‘Herbaceous’ class.</p>
+<div class="figure align-default" id="id1">
+<img alt="img1" src="../_images/postDefClass.png" />
+<p class="caption"><span class="caption-text">img1</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
+<p>In the above example, the Forest class corresponds to the number 5. This
+process can be repeated to map any type of land cover change for the
+classes in your legend. For example, the following example shows
+expansion of river water west of Porto Velho (Cyan are pixels that were
+converted from non-water to water)..</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">regrowth</span> <span class="o">=</span> <span class="nx">class2000</span><span class="p">.</span><span class="nx">neq</span><span class="p">(</span><span class="mi">5</span><span class="p">).</span><span class="nx">and</span><span class="p">(</span><span class="nx">class2000</span><span class="p">.</span><span class="nx">neq</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="p">.</span><span class="nx">and</span><span class="p">(</span><span class="nx">class2018</span><span class="p">.</span><span class="nx">eq</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+
+<span class="nx">Map</span><span class="p">.</span><span class="nx">addLayer</span><span class="p">(</span><span class="nx">regrowth</span><span class="p">.</span><span class="nx">selfMask</span><span class="p">(),</span>
+        <span class="p">{</span><span class="nx">palette</span><span class="o">:</span> <span class="s1">&#39;cyan&#39;</span><span class="p">},</span>
+        <span class="s1">&#39;Regrowth&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="figure align-default" id="id2">
+<img alt="New Water" src="../_images/newWater.png" />
+<p class="caption"><span class="caption-text">New Water</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../ccdc.html" class="btn btn-neutral float-right" title="Obtaining coefficients, changes and synthetic images" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="classify.html" class="btn btn-neutral float-left" title="Part 3: Classify time series segments" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Eric Bullock, Paulo Arévalo
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

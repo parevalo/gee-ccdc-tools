@@ -1,0 +1,678 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>CCDC API: Classification Module &mdash; GEE CCDC Tools 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> GEE CCDC Tools
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../background.html">Background</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ccdc.html">Using CCDC utils to obtain coefficients, changes and synthetic images</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../lctutorial.html">Land cover tutorial</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">GEE CCDC Tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>CCDC API: Classification Module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/classification.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ccdc-api-classification-module">
+<h1>CCDC API: Classification Module<a class="headerlink" href="#ccdc-api-classification-module" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="table-of-contents">
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="#getbinarylabel">getBinaryLabel</a></p></li>
+<li><p><a class="reference external" href="#getclassprobs">getClassProbs</a></p></li>
+<li><p><a class="reference external" href="#makegrids">makeGrids</a></p></li>
+<li><p><a class="reference external" href="#newphaseamplitude">newPhaseAmplitude</a></p></li>
+<li><p><a class="reference external" href="#sampleresultprocedure">sampleResultProcedure</a></p></li>
+<li><p><a class="reference external" href="#runccdcprocedure">runCcdcProcedure</a></p></li>
+<li><p><a class="reference external" href="#gettrainingcoefsatdate">getTrainingCoefsAtDate</a></p></li>
+<li><p><a class="reference external" href="#remaplc">remapLC</a></p></li>
+<li><p><a class="reference external" href="#assignids">assignIds</a></p></li>
+<li><p><a class="reference external" href="#getmiddledate">getMiddleDate</a></p></li>
+<li><p><a class="reference external" href="#makerow">makeRow</a></p></li>
+<li><p><a class="reference external" href="#makelegend">makeLegend</a></p></li>
+<li><p><a class="reference external" href="#getinputfeatures">getInputFeatures</a></p></li>
+<li><p><a class="reference external" href="#makephaseamp">makePhaseAmp</a></p></li>
+<li><p><a class="reference external" href="#subsettraining">subsetTraining</a></p></li>
+<li><p><a class="reference external" href="#accuracyprocedure">accuracyProcedure</a></p></li>
+<li><p><a class="reference external" href="#classifysegments">classifySegments</a></p></li>
+<li><p><a class="reference external" href="#parseconfmatrix">parseConfMatrix</a></p></li>
+<li><p><a class="reference external" href="#getlcatdate">getLcAtDate</a></p></li>
+<li><p><a class="reference external" href="#getmode">getMode</a></p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="getbinarylabel">
+<h1>getBinaryLabel<a class="headerlink" href="#getbinarylabel" title="Permalink to this headline">¶</a></h1>
+<p>Convert training data to binary label for target class</p>
+<div class="section" id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">fc</span></code> <strong>ee.FeatureCollection</strong> Training data feature collection</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">property</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+Property label indicating class label</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">targetClass</span></code>
+<strong>`number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+Class to retain as 1 in binary label</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">option</span></code> <strong>ee.Dictionary</strong> Parameter file containing the keys below</p></li>
+</ul>
+<p>Returns <strong>ee.FeatureCollection</strong> Training data where 1 = targetClass and
+0 equals all other classes</p>
+</div>
+</div>
+<div class="section" id="getclassprobs">
+<h1>getClassProbs<a class="headerlink" href="#getclassprobs" title="Permalink to this headline">¶</a></h1>
+<p>Get class probability for each class in training data</p>
+<div class="section" id="id1">
+<h2>Parameters<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">fc</span></code> <strong>ee.FC</strong> feature collection of training data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coefsToClassify</span></code> <strong>ee.Image</strong> multi-band image of coefficients to
+classify</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">classList</span></code> <strong>list</strong> classes to test probability of</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">classifier</span></code> <strong>ee.Classifier</strong> in ‘PROBABILITY’ mode</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">property</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+label defining class in training data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">options</span></code> <strong>dictionary</strong> parameter file</p></li>
+</ul>
+<p>Returns <strong>ee.Image</strong> image with each band being class probability for
+each input class</p>
+</div>
+</div>
+<div class="section" id="makegrids">
+<h1>makeGrids<a class="headerlink" href="#makegrids" title="Permalink to this headline">¶</a></h1>
+<p>Make random grids in a region of interest</p>
+<div class="section" id="id2">
+<h2>Parameters<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">region</span></code> <strong>ee.Geometry</strong> study region bounding geometry</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">count</span></code>
+<strong>`number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+number of random grids</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code>
+<strong>`number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+length of one side of grid in m^2</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seed</span></code>
+<strong>`number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+random number seed or ‘random’</p></li>
+</ul>
+<p>Returns <strong>ee.FeatureCollection</strong> feature collection of random grids</p>
+</div>
+</div>
+<div class="section" id="newphaseamplitude">
+<h1>newPhaseAmplitude<a class="headerlink" href="#newphaseamplitude" title="Permalink to this headline">¶</a></h1>
+<p>Get phase and amplitude for a single spectral band</p>
+<div class="section" id="id3">
+<h2>Parameters<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">img</span></code> <strong>ee.Image</strong> CCD results in long multi-band format</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bands</span></code> <strong>List</strong> List with the name of the bands for which to
+calculate ampl. and phase</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sinName</span></code>
+<strong>`String &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+Band suffix of the desired sine harmonic coefficient (e.g ‘_SIN)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cosName</span></code>
+<strong>`String &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+Band suffix of the desired sine harmonic coefficient (e.g ‘_COS)</p></li>
+</ul>
+<p>Returns <strong>ee.Image</strong> Image with two bands representing phase and
+amplitude of the desired harmonic *</p>
+</div>
+</div>
+<div class="section" id="sampleresultprocedure">
+<h1>sampleResultProcedure<a class="headerlink" href="#sampleresultprocedure" title="Permalink to this headline">¶</a></h1>
+<p>Get training coefficient by reading from result data</p>
+<div class="section" id="id4">
+<h2>Parameters<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">trainingData</span></code> <strong>ee.FeatureCollection</strong> training data with ccdc
+outputs saved in properties in addition to a date property</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coefNames</span></code> <strong>List</strong> coefficient abbreviated names in order of
+results</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bandList</span></code> <strong>List</strong> list of input band names in order</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dateProperty</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+property name containing date in features</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extraBands</span></code> <strong>List</strong> ancillary bands to add as predictors</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ccdcImage</span></code> <strong>ee.Image</strong> Use ccdc coefficients instead of
+calculating on the fly</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">segs</span></code> <strong>List</strong> Segment identifiers for ccdcImage parameter</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ccdcDateFmt</span></code>
+<strong>`number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+date format of ccdc date format</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trainingDateFmt</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scale</span></code></p></li>
+</ul>
+<p>Returns <strong>ee.FeatureCollection</strong> training data with coefficients
+corresponding to specific date</p>
+</div>
+</div>
+<div class="section" id="runccdcprocedure">
+<h1>runCcdcProcedure<a class="headerlink" href="#runccdcprocedure" title="Permalink to this headline">¶</a></h1>
+<p>Get training coefficient by running ccdc on every feature</p>
+<div class="section" id="id5">
+<h2>Parameters<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">trainingData</span></code> <strong>ee.FeatureCollection</strong> training data with ccdc
+outputs saved in properties in addition to a date property</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coefNames</span></code> <strong>List</strong> coefficient abbreviated names in order of
+results</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bandList</span></code> <strong>List</strong> list of input band names in order</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dateProperty</span></code>
+<strong>`String &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+property name containing date in features</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extraBands</span></code> <strong>List</strong> ancillary bands to add as predictors</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">landsatParams</span></code>
+<strong>`Object &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object&gt;`__</strong>
+parameters for ‘getLandsat’ function</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">segs</span></code> <strong>List</strong> Segment identifiers for ccdcImage parameter</p></li>
+</ul>
+<p>Returns <strong>ee.FeatureCollection</strong> training data with coefficients
+corresponding to specific date</p>
+</div>
+</div>
+<div class="section" id="gettrainingcoefsatdate">
+<h1>getTrainingCoefsAtDate<a class="headerlink" href="#gettrainingcoefsatdate" title="Permalink to this headline">¶</a></h1>
+<p>Get coefficients at a given date for each feature in collection</p>
+<div class="section" id="id6">
+<h2>Parameters<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">trainingData</span></code> <strong>ee.FeatureCollection</strong> training data with ccdc
+outputs saved in properties in addition to a date property</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coefNames</span></code> <strong>List</strong> coefficient abbreviated names in order of
+results (optional, default
+<code class="docutils literal notranslate"><span class="pre">['INTP','SLP','COS',</span> <span class="pre">'SIN','RMSE','COS2','SIN2','COS3','SIN3']</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bandList</span></code> <strong>List</strong> list of input band names in order (optional,
+default <code class="docutils literal notranslate"><span class="pre">['BLUE','GREEN','RED','NIR','SWIR1',</span> <span class="pre">'SWIR2']</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dateProperty</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+property name containing date in features (optional, default
+<code class="docutils literal notranslate"><span class="pre">'Start_Year'</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extraBands</span></code> <strong>List</strong> ancillary bands to add as predictors
+(optional, default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ccdcImage</span></code> <strong>ee.Image</strong> Use ccdc coefficients instead of
+calculating on the fly (optional, default <code class="docutils literal notranslate"><span class="pre">null</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">segs</span></code> <strong>List</strong> Segment identifiers for ccdcImage parameter
+(optional, default <code class="docutils literal notranslate"><span class="pre">[&quot;S1&quot;,&quot;S2&quot;,&quot;S3&quot;,&quot;S4&quot;,&quot;S5&quot;,&quot;S6&quot;]</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ccdcDateFmt</span></code>
+<strong>`number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+date format of ccdc date format (optional, default <code class="docutils literal notranslate"><span class="pre">1</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trainingDateFmt</span></code>
+<strong>`number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+training data date format (according to ccdc syntax) (optional,
+default <code class="docutils literal notranslate"><span class="pre">1</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scale</span></code>
+<strong>`number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+spatial scale to sample training points at (optional, default <code class="docutils literal notranslate"><span class="pre">30</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">landsatParams</span></code>
+<strong>`Object &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object&gt;`__</strong>
+parameters for ‘getLandsat’ function (optional, default
+<code class="docutils literal notranslate"><span class="pre">{start:'1990-01-01',</span> <span class="pre">end:'2020-01-01'}</span></code>)</p></li>
+</ul>
+<p>Returns <strong>ee.FeatureCollection</strong> training data with coefficients
+corresponding to specific date</p>
+</div>
+</div>
+<div class="section" id="remaplc">
+<h1>remapLC<a class="headerlink" href="#remaplc" title="Permalink to this headline">¶</a></h1>
+<p>Remap training labels to GLANCE level 1 land cover</p>
+<div class="section" id="id7">
+<h2>Parameters<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">feats</span></code> <strong>ee.FeatureCollection</strong> training data feature collection</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">inLabel</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+attribute name containing land cover strings</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outLabel</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+attribute name for output numeric land cover</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">inList</span></code> <strong>list</strong> list of input land cover string values</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outList</span></code> <strong>list</strong> list of output land cover numeric values</p></li>
+</ul>
+<p>Returns <strong>ee.FeatureCollection</strong> training data feature collection with
+numeric ‘outLabel’ column in each feature</p>
+</div>
+</div>
+<div class="section" id="assignids">
+<h1>assignIds<a class="headerlink" href="#assignids" title="Permalink to this headline">¶</a></h1>
+<p>Shuffle the sample and assign sample ID</p>
+<div class="section" id="id8">
+<h2>Parameters<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sample</span></code> <strong>ee.FeatureCollection</strong> training data of point samples</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">attributeName</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+name to assign ID attribute to (optional, default <code class="docutils literal notranslate"><span class="pre">ID</span></code>)</p></li>
+</ul>
+<p>Returns <strong>ee.FeatureCollection</strong> training data shuffled with unique ID
+attribute</p>
+</div>
+</div>
+<div class="section" id="getmiddledate">
+<h1>getMiddleDate<a class="headerlink" href="#getmiddledate" title="Permalink to this headline">¶</a></h1>
+<p>Get the middle segment date of training data</p>
+<div class="section" id="id9">
+<h2>Parameters<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">fc</span></code> <strong>ee.FeatureCollection</strong> Training data feature collection</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">startProp</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+Property name of segment start year</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">endProp</span></code>
+<strong>`String &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+Property name of segment end year</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">middleProp</span></code>
+<strong>`String &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+Property name of calculated middle attribute</p></li>
+</ul>
+<p>Returns <strong>ee.FeatureCollection</strong> Training data with middleProp attribute</p>
+</div>
+</div>
+<div class="section" id="makerow">
+<h1>makeRow<a class="headerlink" href="#makerow" title="Permalink to this headline">¶</a></h1>
+<p>Make a row in a legend</p>
+<div class="section" id="id10">
+<h2>Parameters<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">color</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+the hex code or color name of the feature in the row</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+the name of the feature in the row</p></li>
+</ul>
+<p>Returns <strong>ui.Panel</strong> a legend row</p>
+</div>
+</div>
+<div class="section" id="makelegend">
+<h1>makeLegend<a class="headerlink" href="#makelegend" title="Permalink to this headline">¶</a></h1>
+<p>Make a legend widget</p>
+<div class="section" id="id11">
+<h2>Parameters<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">classes</span></code>
+<strong>`array &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array&gt;`__</strong>
+list of input classes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">palette</span></code>
+<strong>`array &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array&gt;`__</strong>
+list of color palette</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">title</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+legend title (optional, default <code class="docutils literal notranslate"><span class="pre">'Legend'</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">width</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+width of panel (optional, default <code class="docutils literal notranslate"><span class="pre">'250px'</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">position</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+position on map (optional, default <code class="docutils literal notranslate"><span class="pre">'bottom-right'</span></code>)</p></li>
+</ul>
+<p>Returns <strong>ui.Panel</strong> legend panel to display on map</p>
+</div>
+</div>
+<div class="section" id="getinputfeatures">
+<h1>getInputFeatures<a class="headerlink" href="#getinputfeatures" title="Permalink to this headline">¶</a></h1>
+<p>Function to convert segment band names to universal band names to
+classify</p>
+<div class="section" id="id12">
+<h2>Parameters<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">seg</span></code>
+<strong>`number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+segment number</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">imageToClassify</span></code> <strong>ee.Image</strong> ccdc coefficient stack to classify</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">predictors</span></code>
+<strong>`array &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array&gt;`__</strong>
+list of predictor variables</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bandNames</span></code>
+<strong>`array &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array&gt;`__</strong>
+band names of coefficient image</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ancillary</span></code>
+<strong>`array &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array&gt;`__</strong>
+list of ancillary data</p></li>
+</ul>
+<p>Returns <strong>ee.List</strong> list of input features</p>
+<p>Returns <strong>ee.Image</strong> bands of the ccdc stack to classify</p>
+</div>
+</div>
+<div class="section" id="makephaseamp">
+<h1>makePhaseAmp<a class="headerlink" href="#makephaseamp" title="Permalink to this headline">¶</a></h1>
+<p>Calculate phase and amplitude from sin and cosine coefficients</p>
+<div class="section" id="id13">
+<h2>Parameters<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">img</span></code> <strong>ee.Image</strong> ccdc coefficient image</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bandNames</span></code>
+<strong>`array &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array&gt;`__</strong>
+coefficient image band names</p></li>
+</ul>
+<p>Returns <strong>ee.Image</strong> an image containing sin/cosine pairs</p>
+</div>
+</div>
+<div class="section" id="subsettraining">
+<h1>subsetTraining<a class="headerlink" href="#subsettraining" title="Permalink to this headline">¶</a></h1>
+<p>Subset training data into random training and testing data Data is
+subset proportionally for each land cover class</p>
+<div class="section" id="id14">
+<h2>Parameters<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">trainingData</span></code> <strong>ee.FeatureCollection</strong> training data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trainProp</span></code> <strong>float</strong> proportion of data to withhold for training</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seed</span></code>
+<strong>`number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+seed for random selection of subset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">classProperty</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+property containing the input class</p></li>
+</ul>
+<p>Returns <strong>ee.FeatureCollection</strong> training data with ‘train’ attribute
+where 1=training, 0=testing</p>
+</div>
+</div>
+<div class="section" id="accuracyprocedure">
+<h1>accuracyProcedure<a class="headerlink" href="#accuracyprocedure" title="Permalink to this headline">¶</a></h1>
+<p>Calculate accuracy metrics using a subset of the training data</p>
+<div class="section" id="id15">
+<h2>Parameters<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">trainingData</span></code> <strong>ee.FeatureCollection</strong> training data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">imageToClassify</span></code> <strong>ee.Image</strong> ccdc coefficient stack to classify</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">predictors</span></code>
+<strong>`array &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array&gt;`__</strong>
+list of predictor variables as strings</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bandNames</span></code>
+<strong>`array &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array&gt;`__</strong>
+list of band names to classify</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ancillary</span></code>
+<strong>`array &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array&gt;`__</strong>
+list of ancillary predictor data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">classifier</span></code> <strong>ee.Classifier</strong> earth engine classifier with
+parameters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">classProperty</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+attribute name with land cover label (optional, default <code class="docutils literal notranslate"><span class="pre">'LC_Num'</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seed</span></code>
+<strong>`number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+seed to use for the random column generator (optional, default
+<code class="docutils literal notranslate"><span class="pre">'random'</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trainProp</span></code> <strong>float</strong> proportion of data to use subset for training
+(optional, default <code class="docutils literal notranslate"><span class="pre">.4</span></code>)</p></li>
+</ul>
+<p>Returns <strong>ee.ConfusionMatrix</strong> a confusion matrix as calculated by the
+train/test subset</p>
+</div>
+</div>
+<div class="section" id="classifysegments">
+<h1>classifySegments<a class="headerlink" href="#classifysegments" title="Permalink to this headline">¶</a></h1>
+<p>Classify stack of CCDC coefficient, band-seperated by segment</p>
+<div class="section" id="id16">
+<h2>Parameters<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">imageToClassify</span></code> <strong>ee.Image</strong> ccdc coefficient stack to classify</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">numberOfSegments</span></code>
+<strong>`number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+number of segments to classify</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bandNames</span></code>
+<strong>`array &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array&gt;`__</strong>
+list of band names to classify</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ancillary</span></code>
+<strong>`array &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array&gt;`__</strong>
+list of ancillary predictor data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ancillaryFeatures</span></code> <strong>ee.Image</strong> ancillary data image</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trainingData</span></code> <strong>ee.FeatureCollection</strong> training data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">classifier</span></code> <strong>ee.Classifier</strong> earth engine classifier with
+parameters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">studyArea</span></code> <strong>ee.Geometry</strong> boundaries of region to classify</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">classProperty</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+attribute name with land cover label (optional, default <code class="docutils literal notranslate"><span class="pre">'LC_Num'</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coefs</span></code>
+<strong>`array &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array&gt;`__</strong>
+list of coefficients to classify</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trainProp</span></code> <strong>float</strong> proportion of data to use subset for training
+(optional, default <code class="docutils literal notranslate"><span class="pre">.4</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seed</span></code>
+<strong>`number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+seed to use for the random column generator (optional, default
+<code class="docutils literal notranslate"><span class="pre">'random'</span></code>)</p></li>
+</ul>
+<p>Returns <strong>ee.Image</strong> classified stack of CCDC segments</p>
+</div>
+</div>
+<div class="section" id="parseconfmatrix">
+<h1>parseConfMatrix<a class="headerlink" href="#parseconfmatrix" title="Permalink to this headline">¶</a></h1>
+<p>Parse confusion matrix from string</p>
+<div class="section" id="id17">
+<h2>Parameters<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">im</span></code> <strong>ee.Image</strong> classified image with confusion matrix in
+metadata</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">attribute</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+name of attribute with confusion matrix (optional, default
+<code class="docutils literal notranslate"><span class="pre">'confMatrix'</span></code>)</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="getlcatdate">
+<h1>getLcAtDate<a class="headerlink" href="#getlcatdate" title="Permalink to this headline">¶</a></h1>
+<p>Calculate landcover at a date based on pre-classified segments</p>
+<div class="section" id="id18">
+<h2>Parameters<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">segs</span></code> <strong>ee.Image</strong> classified ccd segment image</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">date</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+date of land cover to retrieve in format ‘YYYY-MM-DD’</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">numberOfSegments</span></code>
+<strong>`number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+number of segments in classification image</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ccdVersion</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+version of ccd used for classification</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">metadataFilter</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+metadata used for classification of ccd</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">behavior</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+behavior when date is in between segments (‘none’,’before’,’after’)</p></li>
+</ul>
+<p>Returns <strong>ee.Image</strong> matchingDate landcover classification image at date
+specified in parameter</p>
+</div>
+</div>
+<div class="section" id="getmode">
+<h1>getMode<a class="headerlink" href="#getmode" title="Permalink to this headline">¶</a></h1>
+<p>Get mode classification from a stack of overlapping result files</p>
+<div class="section" id="id19">
+<h2>Parameters<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">folder</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+the path to the folder containing the result files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">matchingString</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+an identifier in the result file names</p></li>
+</ul>
+<p>Returns <strong>ee.Image</strong> band-wise mode classification</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Eric Bullock, Paulo Arévalo
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

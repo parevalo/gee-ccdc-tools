@@ -1,0 +1,394 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Part 2: Prepare training data &mdash; GEE CCDC Tools 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Part 3: Classify time series segments" href="classify.html" />
+    <link rel="prev" title="Part 1: Submit Change Detection" href="change.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> GEE CCDC Tools
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../background.html">Background</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../lctut.html">Land cover tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="change.html">Part 1: Submit Change Detection</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Part 2: Prepare training data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#training-data-requirements">Training data requirements:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optional-additional-steps">Optional additional steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#importing-your-training-data-as-an-earth-engine-asset">Importing your training data as an Earth Engine Asset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-a-numeric-land-cover-attribute">Creating a numeric land cover attribute</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#add-a-year-attribute">Add a year attribute</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-predictor-data-for-each-training-point">Get predictor data for each training point</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#add-unique-ids-as-attributes">Add unique IDs as attributes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="classify.html">Part 3: Classify time series segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mapping.html">Part 4: Land Cover Mapping</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../ccdc.html">Obtaining coefficients, changes and synthetic images</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">GEE CCDC Tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../lctut.html">Land cover tutorial</a> &raquo;</li>
+        
+      <li>Part 2: Prepare training data</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/lctutorial/training.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="part-2-prepare-training-data">
+<h1>Part 2: Prepare training data<a class="headerlink" href="#part-2-prepare-training-data" title="Permalink to this headline">¶</a></h1>
+<p>The second step in performing land cover analysis using CCDC is
+collecting training data. There are a few requirements for the training
+data for it to work with the rest of the process. This tutorial
+demonstrates how to ensure your data meets these requirements.</p>
+<div class="section" id="training-data-requirements">
+<h2>Training data requirements:<a class="headerlink" href="#training-data-requirements" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>The data must be an Earth Engine FeatureCollection of point
+geometries.</p></li>
+<li><p>An attribute in each point must contain a numeric value indicating
+the associated land cover.</p></li>
+<li><p>An attribute in each point must contain a year that corresponds to
+the land cover label.</p></li>
+</ul>
+</div>
+<div class="section" id="optional-additional-steps">
+<h2>Optional additional steps<a class="headerlink" href="#optional-additional-steps" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>The predictor data as attributes for each point and for the year that
+corresponds to the land cover label.</p></li>
+<li><p>Unique sample IDs as attributes</p></li>
+</ul>
+</div>
+<div class="section" id="importing-your-training-data-as-an-earth-engine-asset">
+<h2>Importing your training data as an Earth Engine Asset<a class="headerlink" href="#importing-your-training-data-as-an-earth-engine-asset" title="Permalink to this headline">¶</a></h2>
+<p>I am not going to go into details, as that has been documented in depth
+on <a class="reference external" href="https://developers.google.com/earth-engine/importing">Google’s Developer
+Page</a>. However,
+it’s worth making sure your data is the correct format. You can do that
+by printing out the first feature. Note that in this tutorial, all
+capitalized text in code blocks indicate paths that assets that you
+should replace with your own corresponding path.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">trainingPath</span> <span class="o">=</span> <span class="s1">&#39;PATH/TO/YOUR/TRAININGDATA&#39;</span>
+<span class="kd">var</span> <span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">FeatureCollection</span><span class="p">(</span><span class="nx">trainingPath</span><span class="p">)</span>
+<span class="nx">print</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">first</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>In the console, you should see information on the first training point.
+Select the feature and then select ‘geometry’. Make sure the the ‘type’
+is ‘Point’, like in the figure below. If it is anything else (such as
+Rectangle or Polygon) then your must convert your data to points before
+continuing.</p>
+</div>
+<div class="section" id="creating-a-numeric-land-cover-attribute">
+<h2>Creating a numeric land cover attribute<a class="headerlink" href="#creating-a-numeric-land-cover-attribute" title="Permalink to this headline">¶</a></h2>
+<p>The land cover label must be numeric, so it cannot be a string (such as
+“forest”) or a numeric string (or a number that is written in string
+format). To check the type of your attribute select the ‘JSON’ button on
+the right side of the console to expand the json representation of the
+feature. The button is circled in red below:</p>
+<div class="figure align-default" id="id1">
+<img alt="img1" src="../_images/training1.png" />
+<p class="caption"><span class="caption-text">img1</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
+<p>You should see the JSON of the feature appear:</p>
+<div class="figure align-default" id="id2">
+<img alt="img2" src="../_images/training2.png" />
+<p class="caption"><span class="caption-text">img2</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</div>
+<p>Note that my feature has three attributes: lc_string, numeric, and
+numeric_string. The lc_string attribute will not work because the
+classifiers require numeric class property. In the first picture, where
+the output is formatted, the numeric and numeric_string both look like
+they’d work. But when viewing the JSON representation, it can be seen
+that the numeric_string still has quotations, and thus is still
+formatted as a string. Therefore, only the numeric attribute would work
+for this tutorial.</p>
+<p>If you do not have a numeric attribute indicating land cover you can
+convert a string attribute to numeric using the ‘remap’ Earth Engine
+(EE) function. The code to do so is rather straightforward, but we have
+a helper function in our API. For this example, I’ll demonstrate how
+it’s done using the EE function and our CCDC API, and hereforth I’ll
+mostly be relying on the API.</p>
+<p>In pure EE code, and using the class attribute name in the above example
+and assuming our only classes are ‘forest’,’agriculture’,and ‘water’,
+you can convert them to numeric values in a new attribute ‘landcover’
+with the following code:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">trainingData</span>  <span class="o">=</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">feat</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nx">feat</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;landcover&#39;</span><span class="p">,</span><span class="nx">feat</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;lc_string&#39;</span><span class="p">))})</span>
+  <span class="p">.</span><span class="nx">remap</span><span class="p">([</span><span class="s1">&#39;forest&#39;</span><span class="p">,</span><span class="s1">&#39;agriculture&#39;</span><span class="p">,</span><span class="s1">&#39;water&#39;</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span><span class="s1">&#39;landcover&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This can also be done using the ‘remapLC’ function in our API. See API
+documentation for a full description of available functions (todo).</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// First load the API file</span>
+<span class="kd">var</span> <span class="nx">utils</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;projects/GLANCE:ccdcUtilities/api&#39;</span><span class="p">)</span>
+
+<span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">remapLC</span><span class="p">(</span>
+  <span class="nx">fakeFC</span><span class="p">,</span> <span class="s1">&#39;lc_string&#39;</span><span class="p">,</span> <span class="s1">&#39;landcover&#39;</span><span class="p">,[</span><span class="s1">&#39;forest&#39;</span><span class="p">,</span><span class="s1">&#39;agriculture&#39;</span><span class="p">,</span><span class="s1">&#39;water&#39;</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+
+<span class="nx">print</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">first</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>Note that there should now be an attribute called ‘landcover’ that is
+numeric.</p>
+</div>
+<div class="section" id="add-a-year-attribute">
+<h2>Add a year attribute<a class="headerlink" href="#add-a-year-attribute" title="Permalink to this headline">¶</a></h2>
+<p>In order to determine the CCDC coefficients to use as predictors for
+training the classifier, each point needs to have a year attribute to
+query the CCDC results by. For example, if you know a training point
+corresponds to forest in 2014, then the CCDC coefficients for 2014 will
+be used for training. If all of your training data corresponds a certain
+year, you can add the attribute with a simple bit of code. In this
+example the training data corresponds to 2014 and it is assigned to an
+attribute named ‘year’. .</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">trainingData</span>  <span class="o">=</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">feat</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nx">feat</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;year&#39;</span><span class="p">,</span><span class="mi">2014</span><span class="p">)})</span>
+</pre></div>
+</div>
+<p>Your training data might have a ‘start’ and ‘end’ attribute, in which
+case we have a function for calculating the middle date. In this
+example, the start year attribute is ‘Start_Year’, the end attribute is
+‘End_Year’, and the output attribute name is ‘Middle_Year’</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">getMiddleDate</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">,</span> <span class="s1">&#39;Start_Year&#39;</span><span class="p">,</span><span class="s1">&#39;End_Year&#39;</span><span class="p">,</span><span class="s1">&#39;Middle_Year&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="get-predictor-data-for-each-training-point">
+<h2>Get predictor data for each training point<a class="headerlink" href="#get-predictor-data-for-each-training-point" title="Permalink to this headline">¶</a></h2>
+<p>This final step is not technically necessary as it can be done prior to
+submitting the classification, but it allows for quicker a
+classification that loads “on the fly”. This is useful for testing
+classification parameters. The function to do is called
+‘getTrainingCoefsAtDate’. First, however, we need to construct the CCDC
+coefficient image to sample from.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Define bands to use in classification</span>
+<span class="kd">var</span> <span class="nx">bands</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;BLUE&quot;</span><span class="p">,</span><span class="s2">&quot;GREEN&quot;</span><span class="p">,</span><span class="s2">&quot;RED&quot;</span><span class="p">,</span><span class="s2">&quot;NIR&quot;</span><span class="p">,</span><span class="s2">&quot;SWIR1&quot;</span><span class="p">,</span><span class="s2">&quot;SWIR2&quot;</span><span class="p">,</span> <span class="s2">&quot;TEMP&quot;</span><span class="p">]</span>
+
+<span class="c1">// Define coefficients to use in classification</span>
+<span class="kd">var</span> <span class="nx">coefs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;INTP&quot;</span><span class="p">,</span> <span class="s2">&quot;SLP&quot;</span><span class="p">,</span><span class="s2">&quot;COS&quot;</span><span class="p">,</span> <span class="s2">&quot;SIN&quot;</span><span class="p">,</span><span class="s2">&quot;RMSE&quot;</span><span class="p">,</span><span class="s2">&quot;COS2&quot;</span><span class="p">,</span><span class="s2">&quot;SIN2&quot;</span><span class="p">,</span><span class="s2">&quot;COS3&quot;</span><span class="p">,</span><span class="s2">&quot;SIN3&quot;</span><span class="p">]</span>
+
+<span class="c1">// Segment ids</span>
+<span class="kd">var</span> <span class="nx">segs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;S1&quot;</span><span class="p">,</span> <span class="s2">&quot;S2&quot;</span><span class="p">,</span> <span class="s2">&quot;S3&quot;</span><span class="p">,</span> <span class="s2">&quot;S4&quot;</span><span class="p">,</span> <span class="s2">&quot;S5&quot;</span><span class="p">,</span> <span class="s2">&quot;S6&quot;</span><span class="p">,</span><span class="s2">&quot;S7&quot;</span><span class="p">,</span><span class="s2">&quot;S8&quot;</span><span class="p">,</span><span class="s2">&quot;S9&quot;</span><span class="p">]</span>
+
+<span class="c1">// CCDC change detection results from the first part of this tutorial.</span>
+<span class="kd">var</span> <span class="nx">ccdc</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">Image</span><span class="p">(</span><span class="s1">&#39;PATH/TO/CHANGERESULTS&#39;</span><span class="p">)</span>
+
+<span class="c1">// Fill no data values</span>
+<span class="kd">var</span> <span class="nx">newccd</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">newFillNoData</span><span class="p">(</span><span class="nx">ccdc</span><span class="p">,</span> <span class="nx">coefs</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="nx">bands</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">ccdImage</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">newBuildCcdcImage</span><span class="p">(</span><span class="nx">newccd</span><span class="p">,</span> <span class="nx">segs</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="nx">bands</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now that we have the CCDC image we can ocalculate the predictor data for
+each point, filter features that return no data, and export the results
+as an asset.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">getTrainingCoefsAtDate</span><span class="p">(</span>
+  <span class="nx">trainingData</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="s1">&#39;Middle_Year&#39;</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">ccdImage</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">trainingDate</span> <span class="o">=</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">ee</span><span class="p">.</span><span class="nx">Filter</span><span class="p">.</span><span class="nx">notNull</span><span class="p">([</span><span class="s1">&#39;BLUE_COS&#39;</span><span class="p">]))</span>
+
+<span class="nx">print</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">first</span><span class="p">())</span>
+
+<span class="nx">Export</span><span class="p">.</span><span class="nx">table</span><span class="p">.</span><span class="nx">toAsset</span><span class="p">({</span>
+  <span class="nx">collection</span><span class="o">:</span> <span class="nx">trainingData</span><span class="p">,</span>
+  <span class="nx">description</span><span class="o">:</span> <span class="s1">&#39;trainingDataProcessed&#39;</span><span class="p">,</span>
+  <span class="nx">assetId</span><span class="o">:</span> <span class="s1">&#39;PATH/TO/NEW/ASSET&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>You should now see in the feature attributes all of the predictor data
+that can be used for classification.</p>
+</div>
+<div class="section" id="add-unique-ids-as-attributes">
+<h2>Add unique IDs as attributes<a class="headerlink" href="#add-unique-ids-as-attributes" title="Permalink to this headline">¶</a></h2>
+<p>Another optional, but recommended, step is assigning each sample with a
+unique ID as an attribute. EE gives each point an ID, but they can be
+long and seemingly random. The ‘assignIDs’ function in our API will
+shuffle the sample and assign a unique ID to a given attribute name.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">assignIds</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">,</span> <span class="s1">&#39;ID&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="classify.html" class="btn btn-neutral float-right" title="Part 3: Classify time series segments" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="change.html" class="btn btn-neutral float-left" title="Part 1: Submit Change Detection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Eric Bullock, Paulo Arévalo
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

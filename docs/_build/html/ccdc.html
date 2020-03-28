@@ -1,0 +1,348 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Obtaining coefficients, changes and synthetic images &mdash; GEE CCDC Tools 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Part 4: Land Cover Mapping" href="lctutorial/mapping.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> GEE CCDC Tools
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="background.html">Background</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="lctut.html">Land cover tutorial</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Obtaining coefficients, changes and synthetic images</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#access-the-api-and-load-ccdc-results">Access the API and load CCDC results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#obtain-ccdc-coefficients-and-synthetic-images">Obtain CCDC coefficients and synthetic images</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#get-date-in-the-right-format">Get date in the right format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#obtain-ccdc-results-in-regular-image-format">Obtain CCDC results in ‘regular’ image format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-coefficients">Get coefficients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compute-synthetic-image">Compute synthetic image</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-change-information">Get change information</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">GEE CCDC Tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Obtaining coefficients, changes and synthetic images</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/ccdc.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="obtaining-coefficients-changes-and-synthetic-images">
+<h1>Obtaining coefficients, changes and synthetic images<a class="headerlink" href="#obtaining-coefficients-changes-and-synthetic-images" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="access-the-api-and-load-ccdc-results">
+<h2>Access the API and load CCDC results<a class="headerlink" href="#access-the-api-and-load-ccdc-results" title="Permalink to this headline">¶</a></h2>
+<p>This tutorial requires access to the API. It also requires access to any
+results obtained from running the CCDC algorithm on Google Earth Engine
+(GEE). For this tutorial we can use the results created by the GEE team
+for the entire globe. As of March 27, 2020, these results include
+multiple runs with varying inputs and configurations, and therefore we
+need to filter the results for a specific model run before we can
+process them. A model run we have been using so far is the <code class="docutils literal notranslate"><span class="pre">'v5'</span></code>
+model, but others include the BRDF-corrected <code class="docutils literal notranslate"><span class="pre">'brdf'</span></code>, and <code class="docutils literal notranslate"><span class="pre">'x5'</span></code>.
+Until the GEE team publishes an official public dataset, we can use the
+<code class="docutils literal notranslate"><span class="pre">'v5'</span></code> or <code class="docutils literal notranslate"><span class="pre">'brdf'</span></code> for testing purposes. Finally, if we want to look
+at the results for a specific location we can filter them using the
+built-in <code class="docutils literal notranslate"><span class="pre">filterBounds</span></code> function, or remove it if we want to see the
+results for the current map view extent.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// First load the API file</span>
+<span class="kd">var</span> <span class="nx">utils</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;projects/GLANCE:ccdcUtilities/api&#39;</span><span class="p">)</span>
+
+<span class="c1">// Load the global results computed by the GEE team</span>
+<span class="kd">var</span> <span class="nx">ccdcCol</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">ImageCollection</span><span class="p">(</span><span class="s2">&quot;projects/CCDC/v2&quot;</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">ccdc</span> <span class="o">=</span> <span class="nx">ccdcCol</span><span class="p">.</span><span class="nx">filterMetadata</span><span class="p">(</span><span class="s1">&#39;system:index&#39;</span><span class="p">,</span> <span class="s1">&#39;starts_with&#39;</span><span class="p">,</span> <span class="s1">&#39;v5_&#39;</span><span class="p">)</span>
+                  <span class="p">.</span><span class="nx">filterBounds</span><span class="p">(</span><span class="nx">geometry</span><span class="p">)</span>
+                  <span class="p">.</span><span class="nx">mosaic</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="obtain-ccdc-coefficients-and-synthetic-images">
+<h2>Obtain CCDC coefficients and synthetic images<a class="headerlink" href="#obtain-ccdc-coefficients-and-synthetic-images" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">CCDC</span></code> module provides functions that facilitate obtaining any
+coefficient for any point in the time within the range of the results.
+In the case of the global results generated by the GEE team, the time
+period corresponds to 1999 to 2019. Since the CCDC algorithm can be run
+in three different time formats, it is important to know which format
+was used to encode the results. The results used here were computed
+using fractional years, therefore we need to convert the date we want to
+obtain coefficients for to that format. This can be done using the
+<code class="docutils literal notranslate"><span class="pre">Dates</span></code> module:</p>
+<div class="section" id="get-date-in-the-right-format">
+<h3>Get date in the right format<a class="headerlink" href="#get-date-in-the-right-format" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">inputDate</span> <span class="o">=</span> <span class="s1">&#39;2001-12-30&#39;</span>
+<span class="kd">var</span> <span class="nx">dateParams</span> <span class="o">=</span> <span class="p">{</span><span class="nx">inputFormat</span><span class="o">:</span> <span class="mi">3</span><span class="p">,</span> <span class="nx">inputDate</span><span class="o">:</span> <span class="nx">inputDate</span><span class="p">,</span> <span class="nx">outputFormat</span><span class="o">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="kd">var</span> <span class="nx">formattedDate</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Dates</span><span class="p">.</span><span class="nx">convertDate</span><span class="p">(</span><span class="nx">dateParams</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the example above, we convert the input date into fractional year,
+corresponding to the outputFormat <code class="docutils literal notranslate"><span class="pre">1</span></code>. Other output formats are: <code class="docutils literal notranslate"><span class="pre">0</span></code>
+for Julian days, and <code class="docutils literal notranslate"><span class="pre">2</span></code> for Unix time.</p>
+</div>
+<div class="section" id="obtain-ccdc-results-in-regular-image-format">
+<h3>Obtain CCDC results in ‘regular’ image format<a class="headerlink" href="#obtain-ccdc-results-in-regular-image-format" title="Permalink to this headline">¶</a></h3>
+<p>The CCDC outputs are stored as array images to facilitate storing the
+variable-length arrays that are computed by the algorithm, as it is not
+known in advance how many temporal segments will be obtained for each
+pixel. However, operating on those arrays and displaying them tends to
+be slower than using a regular <code class="docutils literal notranslate"><span class="pre">ee.Image()</span></code>. For this reason, we
+convert the array image results into a regular image using the
+<code class="docutils literal notranslate"><span class="pre">utils.CCDC.newBuildCcdcImage</span></code> function. The function expects the CCDC
+results, the number of segments we want to extract, and the names of the
+spectral bands.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Spectral band names. This list contains all possible bands in this dataset</span>
+<span class="kd">var</span> <span class="nx">BANDS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;BLUE&#39;</span><span class="p">,</span> <span class="s1">&#39;GREEN&#39;</span><span class="p">,</span> <span class="s1">&#39;RED&#39;</span><span class="p">,</span> <span class="s1">&#39;NIR&#39;</span><span class="p">,</span> <span class="s1">&#39;SWIR1&#39;</span><span class="p">,</span> <span class="s1">&#39;SWIR2&#39;</span><span class="p">,</span> <span class="s1">&#39;TEMP&#39;</span><span class="p">]</span>
+
+<span class="c1">// Names of the temporal segments</span>
+<span class="kd">var</span> <span class="nx">SEGS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;S1&quot;</span><span class="p">,</span> <span class="s2">&quot;S2&quot;</span><span class="p">,</span> <span class="s2">&quot;S3&quot;</span><span class="p">,</span> <span class="s2">&quot;S4&quot;</span><span class="p">,</span> <span class="s2">&quot;S5&quot;</span><span class="p">,</span> <span class="s2">&quot;S6&quot;</span><span class="p">,</span> <span class="s2">&quot;S7&quot;</span><span class="p">,</span> <span class="s2">&quot;S8&quot;</span><span class="p">,</span> <span class="s2">&quot;S9&quot;</span><span class="p">,</span> <span class="s2">&quot;S10&quot;</span><span class="p">]</span>
+
+<span class="c1">// Obtain CCDC results in &#39;regular&#39; ee.Image format</span>
+<span class="kd">var</span> <span class="nx">ccdImage</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">newBuildCcdcImage</span><span class="p">(</span><span class="nx">ccdc</span><span class="p">,</span> <span class="nx">SEGS</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="nx">BANDS</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="get-coefficients">
+<h3>Get coefficients<a class="headerlink" href="#get-coefficients" title="Permalink to this headline">¶</a></h3>
+<p>The resulting image will contain the <code class="docutils literal notranslate"><span class="pre">ee.Image()</span></code> version of the
+results with the number of coefficients specified. A lower number of
+segments requested will speed up subsequent processing, but may result
+in some missing segments for highly dynamic areas, such as agricultural
+lands in California. For several locations, 10 segments seems to be a
+good compromise. With this image, we can request any set of bands and
+coefficients for a the date we selected above. You can read the API
+documentation to specify the other parameters of the <code class="docutils literal notranslate"><span class="pre">get_multi_coefs</span></code>
+function.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Define bands to select.</span>
+<span class="kd">var</span> <span class="nx">SELECT_BANDS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;RED&#39;</span><span class="p">,</span> <span class="s1">&#39;NIR&#39;</span><span class="p">]</span>
+
+<span class="c1">// Define coefficients to select. This list contains all possible segments</span>
+<span class="kd">var</span> <span class="nx">SELECT_COEFS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;INTP&quot;</span><span class="p">,</span> <span class="s2">&quot;SLP&quot;</span><span class="p">,</span> <span class="s2">&quot;COS&quot;</span><span class="p">,</span> <span class="s2">&quot;SIN&quot;</span><span class="p">,</span> <span class="s2">&quot;COS2&quot;</span><span class="p">,</span> <span class="s2">&quot;SIN2&quot;</span><span class="p">,</span> <span class="s2">&quot;COS3&quot;</span><span class="p">,</span> <span class="s2">&quot;SIN3&quot;</span><span class="p">,</span> <span class="s2">&quot;RMSE&quot;</span><span class="p">]</span>
+
+<span class="c1">// Obtain coefficients</span>
+<span class="kd">var</span> <span class="nx">coefs</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">get_multi_coefs</span><span class="p">(</span><span class="nx">ccdImage</span><span class="p">,</span> <span class="nx">formattedDate</span><span class="p">,</span> <span class="nx">SELECT_BANDS</span><span class="p">,</span> <span class="nx">SELECT_COEFS</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="nx">SEGS</span><span class="p">,</span> <span class="s1">&#39;after&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="compute-synthetic-image">
+<h3>Compute synthetic image<a class="headerlink" href="#compute-synthetic-image" title="Permalink to this headline">¶</a></h3>
+<p>The regression models can be used to calculate the surface reflectance
+of any of the bands for any point in time within the data time range
+(i.e. 1999 to 2019 in our case). This image is called a synthetic image,
+and it is computed with the <code class="docutils literal notranslate"><span class="pre">getMultiSynthetic</span></code> function.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Bands to  get surface reflectance for</span>
+<span class="kd">var</span> <span class="nx">SUB_BANDS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;RED&#39;</span><span class="p">,</span> <span class="s1">&#39;NIR&#39;</span><span class="p">,</span> <span class="s1">&#39;SWIR1&#39;</span><span class="p">,</span> <span class="s1">&#39;SWIR2&#39;</span><span class="p">]</span>
+
+<span class="c1">// Obtain synthetic image</span>
+<span class="kd">var</span> <span class="nx">synt</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">getMultiSynthetic</span><span class="p">(</span><span class="nx">ccdImage</span><span class="p">,</span> <span class="nx">formattedDate</span><span class="p">,</span> <span class="nx">BANDS</span><span class="p">,</span> <span class="nx">SEGS</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="get-change-information">
+<h3>Get change information<a class="headerlink" href="#get-change-information" title="Permalink to this headline">¶</a></h3>
+<p>Finally, to obtain change information we can use the <code class="docutils literal notranslate"><span class="pre">filterMag</span></code>
+function. The function expects the CCDC results in the <code class="docutils literal notranslate"><span class="pre">regular</span></code> image
+format, start and end dates in the correct date format, the spectral
+band for which to get the information, and the list of segments defined
+previously.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">changeStart</span> <span class="o">=</span> <span class="s1">&#39;2001-01-01&#39;</span>
+<span class="kd">var</span> <span class="nx">changeEnd</span> <span class="o">=</span> <span class="s1">&#39;2018-12-31&#39;</span>
+<span class="kd">var</span> <span class="nx">startParams</span> <span class="o">=</span> <span class="p">{</span><span class="nx">inputFormat</span><span class="o">:</span> <span class="mi">3</span><span class="p">,</span> <span class="nx">inputDate</span><span class="o">:</span> <span class="nx">changeStart</span><span class="p">,</span> <span class="nx">outputFormat</span><span class="o">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="kd">var</span> <span class="nx">endParams</span> <span class="o">=</span> <span class="p">{</span><span class="nx">inputFormat</span><span class="o">:</span> <span class="mi">3</span><span class="p">,</span> <span class="nx">inputDate</span><span class="o">:</span> <span class="nx">changeEnd</span><span class="p">,</span> <span class="nx">outputFormat</span><span class="o">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="kd">var</span> <span class="nx">formattedStart</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Dates</span><span class="p">.</span><span class="nx">convertDate</span><span class="p">(</span><span class="nx">startParams</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">formattedEnd</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Dates</span><span class="p">.</span><span class="nx">convertDate</span><span class="p">(</span><span class="nx">endParams</span><span class="p">)</span>
+
+<span class="kd">var</span> <span class="nx">filteredChanges</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">filterMag</span><span class="p">(</span><span class="nx">ccdImage</span><span class="p">,</span> <span class="nx">formattedStart</span><span class="p">,</span> <span class="nx">formattedEnd</span><span class="p">,</span> <span class="s1">&#39;SWIR1&#39;</span><span class="p">,</span> <span class="nx">SEGS</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The image <code class="docutils literal notranslate"><span class="pre">filteredChanges</span></code> contains three bands:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">'MAG'</span></code>: Represents the magnitude of the largest change for the
+specified time range and band.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'tBreak'</span></code>: Represents the date when the change with the largest
+magnitude occurred.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'numTbreak'</span></code>: Represents the total number of changes in the
+specified time period.</p></li>
+</ol>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="lctutorial/mapping.html" class="btn btn-neutral float-left" title="Part 4: Land Cover Mapping" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Eric Bullock, Paulo Arévalo
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

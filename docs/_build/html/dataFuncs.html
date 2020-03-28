@@ -1,0 +1,262 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Utility Functions &mdash; GEE CCDC Tools 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> GEE CCDC Tools
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="background.html">Background</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ccdc.html">Using CCDC utils to obtain coefficients, changes and synthetic images</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="lctutorial.html">Land cover tutorial</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">GEE CCDC Tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Utility Functions</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/dataFuncs.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="utility-functions">
+<h1>Utility Functions<a class="headerlink" href="#utility-functions" title="Permalink to this headline">¶</a></h1>
+<p><em>Utility functions for classifying CCDC coefficients and dealing with outputs.</em></p>
+<p>To load all the necessary functions:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">classUtils</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;projects/GLANCE:ccdcUtilities/classification&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="remaplc">
+<h2>remapLC<a class="headerlink" href="#remaplc" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt>Usage:</dt><dd><p>remapLC(feats, inLabel, outLabel, inList, outList)</p>
+</dd>
+<dt>Description:</dt><dd><p>Converts land cover attribute from string labels to integer</p>
+</dd>
+<dt>Arguments:</dt><dd><p>saveRegion (Feature Collection): Geographic region to run the analysis.</p>
+<p>params (Dictionary): Dictionary defining CODED parameters.</p>
+<p>trainingData (Feature Collection): Feature points containing training data with unique land cover labels identified in the ‘label’ attribute.</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">results</span> <span class="o">=</span> <span class="nx">codedUtils</span><span class="p">.</span><span class="nx">submitCODED</span><span class="p">(</span><span class="nx">saveRegion</span><span class="p">,</span> <span class="nx">params</span><span class="p">,</span> <span class="nx">trainingData</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="makeimage">
+<h2>makeImage<a class="headerlink" href="#makeimage" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt>Usage:</dt><dd><p>makeImage(arrayImage, column, prefix, startYear, endYear)</p>
+</dd>
+<dt>Description:</dt><dd><p>Make a saveable image from the data array output that is retured by CODED.</p>
+</dd>
+<dt>Arguments:</dt><dd><p>arrayImage (array): Output array image from CODED</p>
+<p>column (int): column of multi-dimensional array image to turn into image.</p>
+<p>prefix (string): Prefix to give to all bands in output image</p>
+<p>startYear (int): First year in study period.</p>
+<p>endYear (int): Last year in study period.</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">disturbances</span> <span class="o">=</span> <span class="nx">dataUtils</span><span class="p">.</span><span class="nx">makeImage</span><span class="p">(</span><span class="nx">results</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;dist_&#39;</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">),</span> <span class="nx">params</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;end&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reducebands">
+<h2>reduceBands<a class="headerlink" href="#reducebands" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt>Usage:</dt><dd><p>reduceBands(changeBands, params)</p>
+</dd>
+<dt>Description:</dt><dd><p>Reduce the number of output bands to just save information about the number of disturbances specified in the parameter file.</p>
+</dd>
+<dt>Arguments:</dt><dd><p>changeBands (image): Images representing CODED output disturbances, magnitude, post-disturbance land cover, and change difference.</p>
+<p>parameters (dictionary): CODED parameter dictionary.</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">results</span> <span class="o">=</span> <span class="nx">codedUtils</span><span class="p">.</span><span class="nx">submitCODED</span><span class="p">(</span><span class="nx">saveRegion</span><span class="p">,</span> <span class="nx">params</span><span class="p">,</span> <span class="nx">trainingData</span><span class="p">)</span>
+
+<span class="kd">var</span> <span class="nx">disturbances</span> <span class="o">=</span> <span class="nx">dataUtils</span><span class="p">.</span><span class="nx">makeImage</span><span class="p">(</span><span class="nx">results</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;dist_&#39;</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">),</span> <span class="nx">params</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;end&#39;</span><span class="p">))</span>
+<span class="kd">var</span> <span class="nx">magnitude</span> <span class="o">=</span> <span class="nx">dataUtils</span><span class="p">.</span><span class="nx">makeImage</span><span class="p">(</span><span class="nx">results</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;mag_&#39;</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">),</span> <span class="nx">params</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;end&#39;</span><span class="p">))</span>
+<span class="kd">var</span> <span class="nx">postChange</span> <span class="o">=</span> <span class="nx">dataUtils</span><span class="p">.</span><span class="nx">makeImage</span><span class="p">(</span><span class="nx">results</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;post_&#39;</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">),</span> <span class="nx">params</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;end&#39;</span><span class="p">))</span>
+<span class="kd">var</span> <span class="nx">difference</span> <span class="o">=</span> <span class="nx">dataUtils</span><span class="p">.</span><span class="nx">makeImage</span><span class="p">(</span><span class="nx">results</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;dif_&#39;</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">),</span> <span class="nx">params</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;end&#39;</span><span class="p">))</span>
+
+<span class="kd">var</span> <span class="nx">changeBands</span> <span class="o">=</span> <span class="nx">disturbances</span><span class="p">.</span><span class="nx">addBands</span><span class="p">([</span><span class="nx">magnitude</span><span class="p">,</span> <span class="nx">postChange</span><span class="p">,</span> <span class="nx">difference</span><span class="p">])</span>
+<span class="kd">var</span> <span class="nx">save_output</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">Image</span><span class="p">(</span><span class="nx">dataUtils</span><span class="p">.</span><span class="nx">reduceBands</span><span class="p">(</span><span class="nx">changeBands</span><span class="p">,</span> <span class="nx">params</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Eric Bullock, Paulo Arévalo
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,434 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>CCDC API: Input Module &mdash; GEE CCDC Tools 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> GEE CCDC Tools
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../background.html">Background</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ccdc.html">Using CCDC utils to obtain coefficients, changes and synthetic images</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../lctutorial.html">Land cover tutorial</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">GEE CCDC Tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>CCDC API: Input Module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/inputs.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ccdc-api-input-module">
+<h1>CCDC API: Input Module<a class="headerlink" href="#ccdc-api-input-module" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="table-of-contents">
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="#mask457">mask457</a></p></li>
+<li><p><a class="reference external" href="#mask8">mask8</a></p></li>
+<li><p><a class="reference external" href="#getlandsat">getLandsat</a></p></li>
+<li><p><a class="reference external" href="#doindices">doIndices</a></p></li>
+<li><p><a class="reference external" href="#calcndvi">calcNDVI</a></p></li>
+<li><p><a class="reference external" href="#calcnbr">calcNBR</a></p></li>
+<li><p><a class="reference external" href="#calcndfi">calcNDFI</a></p></li>
+<li><p><a class="reference external" href="#calcevi">calcEVI</a></p></li>
+<li><p><a class="reference external" href="#calcevi2">calcEVI2</a></p></li>
+<li><p><a class="reference external" href="#tctrans">tcTrans</a></p></li>
+<li><p><a class="reference external" href="#makelatgrid">makeLatGrid</a></p></li>
+<li><p><a class="reference external" href="#makelongrid">makeLonGrid</a></p></li>
+<li><p><a class="reference external" href="#makelonlatgrid">makeLonLatGrid</a></p></li>
+<li><p><a class="reference external" href="#getancillary">getAncillary</a></p></li>
+<li><p><a class="reference external" href="#getsentinel">getSentinel</a></p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="mask457">
+<h1>mask457<a class="headerlink" href="#mask457" title="Permalink to this headline">¶</a></h1>
+<p>Make cloud mask for Landsat 4,5, and 7</p>
+<div class="section" id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">image</span></code> <strong>ee.Image</strong> Landsat image with pixel_qa band</p></li>
+</ul>
+<p>Returns <strong>ee.Image</strong> Landsat image with clouds and shadows masked</p>
+</div>
+</div>
+<div class="section" id="mask8">
+<h1>mask8<a class="headerlink" href="#mask8" title="Permalink to this headline">¶</a></h1>
+<p>Make cloud mask for Landsat 8</p>
+<div class="section" id="id1">
+<h2>Parameters<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">image</span></code> <strong>ee.Image</strong> Landsat image with pixel_qa band</p></li>
+</ul>
+<p>Returns <strong>ee.Image</strong> Landsat image with clouds and shadows masked</p>
+</div>
+</div>
+<div class="section" id="getlandsat">
+<h1>getLandsat<a class="headerlink" href="#getlandsat" title="Permalink to this headline">¶</a></h1>
+<p>Get Landsat images for a specific region Possible bands and indices:
+BLUE, GREEN, RED, NIR, SWIR1, SWIR2, NDVI, NBR, EVI, EVI2,BRIGHTNESS,
+GREENNESS, WETNESS</p>
+<div class="section" id="id2">
+<h2>Parameters<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">options</span></code> <strong>ee.Dict</strong> Parameter file containing the keys below</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">start</span></code>
+<strong>`String &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+First date to filter images</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">end</span></code>
+<strong>`String &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+Last date to filter images</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">targetBands</span></code> <strong>list</strong> Bands and indices to return</p></li>
+</ul>
+<p>Returns <strong>any</strong> ee.ImageCol. Masked image collection with L4, L5, L7,
+and L8</p>
+</div>
+</div>
+<div class="section" id="doindices">
+<h1>doIndices<a class="headerlink" href="#doindices" title="Permalink to this headline">¶</a></h1>
+<p>Calculate spectral indices for all bands in collection</p>
+<div class="section" id="id3">
+<h2>Parameters<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">collection</span></code> <strong>ee.ImageCollection</strong> Landsat image collection</p></li>
+</ul>
+<p>Returns <strong>ee.ImageCollection</strong> Landsat image with spectral indices</p>
+</div>
+</div>
+<div class="section" id="calcndvi">
+<h1>calcNDVI<a class="headerlink" href="#calcndvi" title="Permalink to this headline">¶</a></h1>
+<p>Calculate NDVI for an image</p>
+<div class="section" id="id4">
+<h2>Parameters<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">image</span></code> <strong>ee.Image</strong> Landsat image with NIR and RED bands</p></li>
+</ul>
+<p>Returns <strong>ee.Image</strong> NDVI image</p>
+</div>
+</div>
+<div class="section" id="calcnbr">
+<h1>calcNBR<a class="headerlink" href="#calcnbr" title="Permalink to this headline">¶</a></h1>
+<p>Calculate NBR for an image</p>
+<div class="section" id="id5">
+<h2>Parameters<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">image</span></code> <strong>ee.Image</strong> Landsat image with NIR and SWIR2 bands</p></li>
+</ul>
+<p>Returns <strong>ee.Image</strong> NBR image</p>
+</div>
+</div>
+<div class="section" id="calcndfi">
+<h1>calcNDFI<a class="headerlink" href="#calcndfi" title="Permalink to this headline">¶</a></h1>
+<p>Calculate NDFI using endmembers from Souza et al., 2005</p>
+<div class="section" id="id6">
+<h2>Parameters<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">image</span></code> <strong>ee.Image</strong> surface reflectance image</p></li>
+</ul>
+<p>Returns <strong>ee.Image</strong> NDFI transform</p>
+</div>
+</div>
+<div class="section" id="calcevi">
+<h1>calcEVI<a class="headerlink" href="#calcevi" title="Permalink to this headline">¶</a></h1>
+<p>Calculate EVI for an image</p>
+<div class="section" id="id7">
+<h2>Parameters<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">image</span></code> <strong>ee.Image</strong> Landsat image with NIR, RED, and BLUE bands</p></li>
+</ul>
+<p>Returns <strong>ee.Image</strong> EVI transform</p>
+</div>
+</div>
+<div class="section" id="calcevi2">
+<h1>calcEVI2<a class="headerlink" href="#calcevi2" title="Permalink to this headline">¶</a></h1>
+<p>Calculate EVI2 for an image</p>
+<div class="section" id="id8">
+<h2>Parameters<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">image</span></code> <strong>ee.Image</strong> Landsat image with NIR and RED</p></li>
+</ul>
+<p>Returns <strong>ee.Image</strong> EVI2 transform</p>
+</div>
+</div>
+<div class="section" id="tctrans">
+<h1>tcTrans<a class="headerlink" href="#tctrans" title="Permalink to this headline">¶</a></h1>
+<p>Tassel Cap coefficients from Crist 1985</p>
+<div class="section" id="id9">
+<h2>Parameters<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">image</span></code> <strong>ee.Image</strong> Landsat image with BLUE, GREEN, RED, NIR,
+SWIR1, and SWIR2</p></li>
+</ul>
+<p>Returns <strong>ee.Image</strong> 3-band image with Brightness, Greenness, and
+Wetness</p>
+</div>
+</div>
+<div class="section" id="makelatgrid">
+<h1>makeLatGrid<a class="headerlink" href="#makelatgrid" title="Permalink to this headline">¶</a></h1>
+<p>Create a grid with features corresponding to latitudinal strips</p>
+<div class="section" id="id10">
+<h2>Parameters<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">minY</span></code>
+<strong>`Number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+minimum latititude coordinate</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maxY</span></code>
+<strong>`Number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+maximum latititude coordinate</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">minX</span></code>
+<strong>`Number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+maximum longitude coordinate</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maxX</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code>
+<strong>`Number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+size of features in units of latitudinal degrees</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">options</span></code> <strong>Dictionary</strong> parameter file</p></li>
+</ul>
+<p>Returns <strong>ee.FeatureCollection</strong> grid of features along latitudinal
+lines</p>
+</div>
+</div>
+<div class="section" id="makelongrid">
+<h1>makeLonGrid<a class="headerlink" href="#makelongrid" title="Permalink to this headline">¶</a></h1>
+<p>Create a grid with features corresponding to longitudinal strips</p>
+<div class="section" id="id11">
+<h2>Parameters<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">minY</span></code>
+<strong>`Number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+minimum latititude coordinate</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maxY</span></code>
+<strong>`Number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+maximum latititude coordinate</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">minX</span></code>
+<strong>`Number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+maximum longitude coordinate</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maxX</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code>
+<strong>`Number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+size of features in units of latitudinal degrees</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">options</span></code> <strong>Dictionary</strong> parameter file</p></li>
+</ul>
+<p>Returns <strong>ee.FeatureCollection</strong> grid of features along longitudinal
+lines</p>
+</div>
+</div>
+<div class="section" id="makelonlatgrid">
+<h1>makeLonLatGrid<a class="headerlink" href="#makelonlatgrid" title="Permalink to this headline">¶</a></h1>
+<p>Create a grid with features corresponding to longitudinal strips</p>
+<div class="section" id="id12">
+<h2>Parameters<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">minY</span></code>
+<strong>`Number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+minimum latititude coordinate</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maxY</span></code>
+<strong>`Number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+maximum latititude coordinate</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">minX</span></code>
+<strong>`Number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+maximum longitude coordinate</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maxX</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code>
+<strong>`Number &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number&gt;`__</strong>
+size of features in units of latitudinal degrees</p></li>
+</ul>
+<p>Returns <strong>ee.FeatureCollection</strong> grid of features along longitudinal
+lines</p>
+</div>
+</div>
+<div class="section" id="getancillary">
+<h1>getAncillary<a class="headerlink" href="#getancillary" title="Permalink to this headline">¶</a></h1>
+<p>Get ancillary data for trainning and classification.</p>
+<p>Returns <strong>ee.Image</strong> Multi-band image containing ancillary layers</p>
+</div>
+<div class="section" id="getsentinel">
+<h1>getSentinel<a class="headerlink" href="#getsentinel" title="Permalink to this headline">¶</a></h1>
+<p>Get Sentinel-2 Data From EE Examples Repo</p>
+<div class="section" id="id13">
+<h2>Parameters<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">startDate</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+beginning date in format ‘YYYY-MM-DD’</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">endDate</span></code>
+<strong>`string &lt;https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String&gt;`__</strong>
+end date in format ‘YYYY-MM-DD’</p></li>
+</ul>
+<p>Returns <strong>ee.Image</strong> masked median Sentinel-2 image</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Eric Bullock, Paulo Arévalo
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
