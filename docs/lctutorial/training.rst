@@ -159,8 +159,7 @@ coefficient image to sample from.
     var ccdc = ee.Image('PATH/TO/CHANGERESULTS')
 
     // Fill no data values
-    var newccd = utils.CCDC.newFillNoData(ccdc, coefs.length, bands.length)
-    var ccdImage = utils.CCDC.newBuildCcdcImage(newccd, segs.length, bands)
+    var ccdImage = utils.CCDC.newBuildCcdcImage(ccdc, segs.length, bands)
 
 Now that we have the CCDC image we can ocalculate the predictor data for
 each point, filter features that return no data, and export the results
@@ -169,7 +168,7 @@ as an asset.
 .. code:: javascript
 
     var trainingData = utils.Classification.getTrainingCoefsAtDate(
-      trainingData, null, null, 'Middle_Year', null, ccdImage)
+      trainingData, coefs, bands, 'Middle_Year', null, ccdImage, segs)
     var trainingDate = trainingData.filter(ee.Filter.notNull(['BLUE_COS']))
 
     print(trainingData.first())
