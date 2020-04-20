@@ -13,7 +13,7 @@ will go through it all.
 
 A code example using GLANCE data and parameters can be found here:
 
-https://code.earthengine.google.com/?scriptPath=projects%2FGLANCE%3Atutorial%2FPart%202.%20Classification
+https://code.earthengine.google.com/?scriptPath=projects%2FGLANCE%3ATutorial%2FPart%202.%20Classification
 
 Classification requirements:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -82,7 +82,7 @@ CCDC stack with ancillary data to classify.
               [-65.11727581440459, -13.240578578777912],
               [-59.470303158154586, -13.240578578777912],
               [-59.470303158154586, -8.755437491733284]]], null, false);
-    var trainingDataPath = 'PATH/TO/YOUR/TRAINING/DATA
+    var trainingDataPath = 'PATH/TO/YOUR/TRAINING/DATA'
     var classifier = ee.Classifier.smileRandomForest({
       numberOfTrees: 150,
       variablesPerSplit: null,
@@ -95,12 +95,8 @@ CCDC stack with ancillary data to classify.
     var ccdcArray = 'PATH/TO/YOUR/CCDC/ARRAy'
     var ccdcCollection = ee.ImageCollection("projects/CCDC/" + ccdVersion)
 
-
-    // This function replaces no data values with zeros, a somewhat random step needed to turn the array into an image.
-    ccdcArray = utils.CCDC.newFillNoData(ccdcArray, 8, bandNames.length)
-
     // Next, turn array image into image
-    var imageToClassify = utils.CCDC.newBuildCcdcImage(ccdcArray, numberOfSegments, bandNames)
+    var imageToClassify = utils.CCDC.buildCcdImage(ccdcArray, numberOfSegments, bandNames)
 
     // Now get ancillary data
     var demImage = ee.Image('USGS/SRTMGL1_003').rename('ELEVATION')

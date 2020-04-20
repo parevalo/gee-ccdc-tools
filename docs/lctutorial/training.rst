@@ -158,17 +158,20 @@ coefficient image to sample from.
     // CCDC change detection results from the first part of this tutorial.
     var ccdc = ee.Image('PATH/TO/CHANGERESULTS')
 
-    // Fill no data values
-    var ccdImage = utils.CCDC.newBuildCcdcImage(ccdc, segs.length, bands)
+    // Create image stack from ccdc parameter array
+    var ccdImage = utils.CCDC.buildCcdImage(ccdc, segs.length, bands)
 
-Now that we have the CCDC image we can ocalculate the predictor data for
+    // Finally, get ancillary topographic and elevation data
+    var ancillary = utils.Inputs.getAncillary()
+
+Now that we have the CCDC image we can calculate the predictor data for
 each point, filter features that return no data, and export the results
 as an asset.
 
 .. code:: javascript
 
     var trainingData = utils.Classification.getTrainingCoefsAtDate(
-      trainingData, coefs, bands, 'Middle_Year', null, ccdImage, segs)
+      trainingData, coefs, bands, 'Middle_Year', ancillary, ccdImage, segs)
     var trainingDate = trainingData.filter(ee.Filter.notNull(['BLUE_COS']))
 
     print(trainingData.first())
