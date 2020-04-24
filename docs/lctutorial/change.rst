@@ -103,7 +103,7 @@ GEE Docs, so I will not elaborate on them here.
 
 .. code:: javascript
 
-    // First define parameters (note the Landsat collection is scaled by 10000, which affects the lambda parameter).
+    // First define parameters 
     var params = {
         collection: filteredLandsat,
         breakpointBands: ['GREEN','RED','NIR','SWIR1','SWIR2'], 
@@ -112,7 +112,7 @@ GEE Docs, so I will not elaborate on them here.
         chiSquareProbability: .99, 
         minNumOfYearsScaler: 1.33, 
         dateFormat: 2, 
-        lambda: 20, 
+        lambda: 20/10000, 
         maxIterations: 25000
       }
 

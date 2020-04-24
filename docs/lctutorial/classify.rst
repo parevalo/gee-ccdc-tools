@@ -140,5 +140,4 @@ classify the CCDC segments.
 
    img1
 And just like that, we can get a classified land cover map! The layer
-added represents the first segment land cover, which in this case is
-circa 1999.
+added represents the first segment land cover.
