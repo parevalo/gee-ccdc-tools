@@ -30,14 +30,14 @@ I am not going to go into details, as that has been documented in depth
 on `Google's Developer
 Page <https://developers.google.com/earth-engine/importing>`__. However,
 it's worth making sure your data is the correct format. You can do that
-by printing out the first feature. Note that in this tutorial, all
-capitalized text in code blocks indicate paths that assets that you
-should replace with your own corresponding path.
+by printing out the first feature. 
 
 .. code:: javascript
 
-    var trainingPath = 'PATH/TO/YOUR/TRAININGDATA'
-    var trainingData = ee.FeatureCollection(trainingPath)
+    // Load example parameter file
+    var params = require('projects/GLANCE:Tutorial/params.js')
+
+    var trainingData = ee.FeatureCollection(params.Classification.trainingPath)
     print(trainingData.first())
 
 In the console, you should see information on the first training point.
@@ -65,6 +65,7 @@ You should see the JSON of the feature appear:
    :alt: img2
 
    img2
+
 Note that my feature has three attributes: lc\_string, numeric, and
 numeric\_string. The lc\_string attribute will not work because the
 classifiers require numeric class property. In the first picture, where
@@ -92,8 +93,7 @@ with the following code:
        return feat.set('landcover',feat.get('lc_string'))})
        .remap(['forest','agriculture','water'],[1,2,3],'landcover')
 
-This can also be done using the 'remapLC' function in our API. See API
-documentation for a full description of available functions (todo).
+This can also be done using the 'remapLC' function in our API. See the `API documentation <https://gee-tutorials.readthedocs.io/en/latest/api/api.html>`_ for a full description of available functions.
 
 .. code:: javascript
 
@@ -103,7 +103,7 @@ documentation for a full description of available functions (todo).
     trainingData = utils.Classification.remapLC(
       fakeFC, 'lc_string', 'landcover',['forest','agriculture','water'],[1,2,3])
 
-    print(trainingData.first())
+    print('First training point: ', trainingData.first())
 
 Note that there should now be an attribute called 'landcover' that is
 numeric.
@@ -118,21 +118,12 @@ corresponds to forest in 2014, then the CCDC coefficients for 2014 will
 be used for training. If all of your training data corresponds a certain
 year, you can add the attribute with a simple bit of code. In this
 example the training data corresponds to 2014 and it is assigned to an
-attribute named 'year'. .
+attribute named 'year'.
 
 .. code:: javascript
 
      trainingData  = trainingData.map(function(feat) {
        return feat.set('year',2014)})
-
-Your training data might have a 'start' and 'end' attribute, in which
-case we have a function for calculating the middle date. In this
-example, the start year attribute is 'Start\_Year', the end attribute is
-'End\_Year', and the output attribute name is 'Middle\_Year'
-
-.. code:: javascript
-
-    trainingData = utils.Classification.getMiddleDate(trainingData, 'Start_Year','End_Year','Middle_Year')
 
 Get predictor data for each training point
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -147,21 +138,31 @@ coefficient image to sample from.
 .. code:: javascript
 
     // Define bands to use in classification
-    var bands = ["BLUE","GREEN","RED","NIR","SWIR1","SWIR2", "TEMP"]
+    var bands = params.Classification.bandNames
 
     // Define coefficients to use in classification
-    var coefs = ["INTP", "SLP","COS", "SIN","RMSE","COS2","SIN2","COS3","SIN3"]
+    var coefs = params.Classification.coefs
 
     // Segment ids
-    var segs = ["S1", "S2", "S3", "S4", "S5", "S6","S7","S8","S9"]
+    var segs = params.Classification.segs
+
+    // Property corresponding to year of training data
+    var yearProperty = params.Classification.yearProperty
 
     // CCDC change detection results from the first part of this tutorial.
-    var ccdc = ee.Image('PATH/TO/CHANGERESULTS')
+    var coefImage = ee.ImageCollection(params.Classification.changeResults)
+      .filterBounds(params.StudyRegion).mosaic()
 
-    // Create image stack from ccdc parameter array
-    var ccdImage = utils.CCDC.buildCcdImage(ccdc, segs.length, bands)
+    // Load ccd image stack with coefficients and change information
 
-    // Finally, get ancillary topographic and elevation data
+    var ccdImage = utils.Classification.loadResults(
+      params.Classification.resultFormat,
+      params.Classification.changeResults,
+      params.StudyRegion)
+
+    print('CCD Image:', ccdImage)
+
+    // Finally, get ancillary topographic and climate data
     var ancillary = utils.Inputs.getAncillary()
 
 Now that we have the CCDC image we can calculate the predictor data for
@@ -171,15 +172,19 @@ as an asset.
 .. code:: javascript
 
     var trainingData = utils.Classification.getTrainingCoefsAtDate(
-      trainingData, coefs, bands, 'Middle_Year', ancillary, ccdImage, segs)
-    var trainingDate = trainingData.filter(ee.Filter.notNull(['BLUE_COS']))
+      trainingData, coefs, bands, yearProperty, ancillary, ccdImage, segs)
 
-    print(trainingData.first())
+
+    // Filter points with no data
+    var testBand = params.Classification.bandNames[0] + '_' + params.Classification.coefs[0]
+    trainingData = trainingData.filter(ee.Filter.notNull([testBand]))
+
+    print('First training point with predictors:', trainingData.first())
 
     Export.table.toAsset({
       collection: trainingData,
       description: 'trainingDataProcessed',
-      assetId: 'PATH/TO/NEW/ASSET'})
+      assetId: params.Classification.trainingPathPredictors})
 
 You should now see in the feature attributes all of the predictor data
 that can be used for classification.

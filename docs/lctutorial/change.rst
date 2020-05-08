@@ -74,20 +74,22 @@ cleaner the data the better. If you wish to build your own Image
 collection, I refer you to the GEE Examples repo. Alternatively, to
 obtain an image collection of Landsat 4, 5, 7, and 8 data that is masked
 using the cfmask band you can use the 'getLandsat' function in the
-'Inputs' module of our api.
+'Inputs' module of our api. The parameters for building an image collection
+and running CCDC live within a seperate `parameter file <https://gee-tutorials.readthedocs.io/en/latest/lctutorial/params.html>`_
 
 .. code:: javascript
 
-    var allLandsat = utils.Inputs.getLandsat()
+    // Load example parameter file
+    var params = require('projects/GLANCE:Tutorial/params.js')
 
     // Filter by date and a location in Brazil
-    var filteredLandsat = allLandsat
-        .filterBounds(ee.Geometry.Point([-63.36221955604655, -10.611744341509555]))
-        .filterDate('2000-01-01','2020-01-01')
+    var filteredLandsat = utils.Inputs.getLandsat()
+        .filterBounds(params.StudyRegion)
+        .filterDate(params.ChangeDetection.start, params.ChangeDetection.end)
 
     print(filteredLandsat.size())
 
-The console should show that there are 484 images in the collection. It
+The console should show that there are around images in the collection. It
 should be noted that CCDC uses all available Landsat data, even if part
 of the image is cloudy! That is because there can be many usable,
 cloud-free pixels even if a majority of the image is cloudy. Since CCDC
@@ -102,21 +104,20 @@ number of model breaks. Documentation on the CCDC parameters are in the
 GEE Docs, so I will not elaborate on them here.
 
 .. code:: javascript
-
     // First define parameters 
-    var params = {
+    var changeParams = {
         collection: filteredLandsat,
-        breakpointBands: ['GREEN','RED','NIR','SWIR1','SWIR2'], 
-        tmaskBands: ['GREEN','SWIR2'], 
-        minObservations: 6, 
-        chiSquareProbability: .99, 
-        minNumOfYearsScaler: 1.33, 
-        dateFormat: 2, 
-        lambda: 20/10000, 
-        maxIterations: 25000
+        breakpointBands: params.ChangeDetection.breakpointBands, 
+        tmaskBands: params.ChangeDetection.tmaskBands, 
+        minObservations: params.ChangeDetection.minObservations, 
+        chiSquareProbability: params.ChangeDetection.chiSquareProbability, 
+        minNumOfYearsScaler: params.ChangeDetection.minNumOfYearsScaler, 
+        dateFormat: params.ChangeDetection.dateFormat, 
+        lambda: params.ChangeDetection.lambda, 
+        maxIterations: params.ChangeDetection.maxIterations
       }
 
-    var results = ee.Algorithms.TemporalSegmentation.Ccdc(params)
+    var results = ee.Algorithms.TemporalSegmentation.Ccdc(changeParams)
     print(results)
 
 And like that, you have run the change detection component of CCDC! A

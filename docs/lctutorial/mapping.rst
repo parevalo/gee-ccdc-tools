@@ -24,16 +24,8 @@ specific date we can use the 'getLcAtDate' function in our API.
     var utils = require('projects/GLANCE:ccdcUtilities/api')
     var classificationStack = '/PATH/TO/IMAGE/STACK'
     var dateOfClassification = '2014-03-27'
-    var numberOfSegments = 6
-    var ccdVersion = 'v2'
-    var metadataFilter = 'v5_'
-    var behavior = 'after'
     var matchingDate = classUtils.getLcAtDate(classificationStack,
-        dateOfClassification,
-        numberOfSegments,
-        ccdVersion,
-        metadataFilter,
-        behavior)
+        dateOfClassification)
 
 This can easily be extended to map change between two dates. In this
 example we calculate the post-deforestation land cover between 2000 and
@@ -42,18 +34,10 @@ example we calculate the post-deforestation land cover between 2000 and
 .. code:: javascript
 
     var class2000 = utils.Classification.getLcAtDate(classificationStack,
-        '2000-01-01',
-        numberOfSegments,
-        ccdVersion,
-        metadataFilter,
-        'after')
+        '2000-01-01')
 
     var class2018 = utils.Classification.getLcAtDate(classificationStack,
-        '2018-01-01',
-        numberOfSegments,
-        ccdVersion,
-        metadataFilter,
-        'before')
+        '2018-01-01')
 
     var deforestation = class2000.eq(5)
         .and(class2018.neq(5))
