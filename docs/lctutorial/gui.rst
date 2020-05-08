@@ -179,7 +179,7 @@ example just using 3 would map conversion from 1 to 3, or forest to
 cropland. If these boxes are left empty then just the land cover maps
 will be created.
 
-.. figure:: ../img/lcApp2.png
+.. figure:: ../img/lcApp2.PNG
    :alt: app region 1
 
    app region 1
