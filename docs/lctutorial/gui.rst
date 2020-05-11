@@ -8,11 +8,12 @@ By Eric Bullock May 7, 2020
 
    app region 1
 
-In addition to the API, we have created user interfaces for calculating
-CCDC model parameters (i.e. regression coefficients), displaying and
-interacting with CCDC coefficients and corresponding pixel time series,
-and classification of the model parameters. This tutorial will
-demonstrate the latter.
+To faciliate easy access to our API we have created a series of graphical 
+user interfaces (GUIs) that require no coding by the user. These guis can be
+used for calculating CCDC model parameters (i.e. regression coefficients), 
+displaying and interacting with CCDC coefficients and corresponding pixel 
+time series, and classification of the model parameters. This tutorial will
+demonstrate the gui for creating land cover and land cover change maps.
 
 In this tutorial you will:
 
@@ -23,8 +24,7 @@ In this tutorial you will:
 
 I provide example training data and CCDC coefficients for seven
 countries in East Africa (Rwanda, Uganda, Ethiopia, Tanzania, Kenya,
-Zambia, and Malawi). Users should see our other tutorials for examples
-on how this data can be created.
+Zambia, and Malawi). 
 
 The first tool that be used in this tutorial can be found
 `here <https://code.earthengine.google.com/?scriptPath=projects%2FGLANCE%3AAPPS%2Fclassify_app>`__.
@@ -50,11 +50,11 @@ cover or condition change.
 
    CCDC Example
 
-This result of this step will be an image, with each band corresponding
-to the pixel’s nth land cover label for nbands. In other words, band 1
-is the first segment’s classification, band 2 is the second, and so on.
-Theoretically, a pixel can have dozens if not hundreds of segments. That
-is very rare, however, since the changes correspond to land change
+This result of part 1 of this tutorial  will be an image with bands
+corresponding to the pixel’s nth land cover label for nbands. In other 
+words, band 1 is the first segment’s classification, band 2 is the 
+second, and so on. Theoretically, a pixel can have dozens of segments. 
+That is very rare, however, since the changes correspond to land change
 occuring within that pixel. Thus, to reduce computational intensity we
 limit the number of segments that are classified in this application to
 6 per pixel.
@@ -68,7 +68,7 @@ appear:
    app load screen
 
 These first few parameters describe the format of the CCDC results.
-First, are saved as a single image or a collection? Next is the path to
+First, are they saved as a single image or a collection? Next is the path to
 the CCDC results. In this example, we provide an example of an
 ImageCollection of results with the path ‘projects/LCMS/SERVIR_CCDC’.
 Finally, you must specify the date format that the results were run
@@ -142,6 +142,14 @@ FeatureCollection or only the points that fall within the study region.
 
    app region 1
 
+Note, the classification runs quicker if the predictor data for each training 
+point is saved in the feature's properties (as opposed to being calculated
+on the fly. I recommend doing this process in a seperate task, and then using
+the data with the predictors attached to quickly try classification parameters. 
+You should see in the Console a note about whether or not the predictor
+data must be sampled as the training points. If so, you can also submit
+a task that will save this calculation for future use. 
+
 Finally, when you click ‘Run Classification’, the classification
 corresponding to the first segment period gets displayed on the map. In
 this case, the models correspond to ~1999. The full classification stack
@@ -173,11 +181,15 @@ specified class or group of classes. You must first specify the starting
 and ending dates and the land cover class # labels for the corresponding
 dates. For example, the following examples shows the pixels (red) that
 are class 1 (forest) in 2001-01-01, and are either class 2, 3, 4, or 5
-in 2016-06-15. In other words, deforestation from January 2001 to June
+in 2014-01-15. In other words, deforestation from January 2001 to June
 2016. You can also specify a single value for the Class (To) box, for
 example just using 3 would map conversion from 1 to 3, or forest to
 cropland. If these boxes are left empty then just the land cover maps
 will be created.
+
+Finally, the tool allows you to specify some visualization parameters.
+This step is very straightforward, just list the land cover names
+and corresponding numeric value, and optionally provide a palette.
 
 .. figure:: ../img/lcApp2.PNG
    :alt: app region 1
