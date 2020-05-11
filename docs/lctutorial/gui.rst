@@ -6,7 +6,7 @@ By Eric Bullock May 7, 2020
 .. figure:: ../img/classifyApp7.png
    :alt: app region 1
 
-   app region 1
+   Classification of CCDC model parameters for Uganda.
 
 To faciliate easy access to our API we have created a series of graphical 
 user interfaces (GUIs) that require no coding by the user. These guis can be
@@ -48,7 +48,8 @@ cover or condition change.
 .. figure:: ../img/ccdcExample.png
    :alt: CCDC Example
 
-   CCDC Example
+   Example CCDC time series for a pixel that is deforested but later 
+   return to secondary forest.
 
 This result of part 1 of this tutorial  will be an image with bands
 corresponding to the pixel’s nth land cover label for nbands. In other 
@@ -65,7 +66,7 @@ appear:
 .. figure:: ../img/classifyApp1.png
    :alt: app load screen
 
-   app load screen
+   The first step in the app is to load the coefficients.
 
 These first few parameters describe the format of the CCDC results.
 First, are they saved as a single image or a collection? Next is the path to
@@ -78,7 +79,7 @@ with. For the example dataset they are in the format of ordinal years
 .. figure:: ../img/classifyApp2.png
    :alt: app second parameters
 
-   app second parameters
+   Next comes parameter specification. 
 
 Next are the parameters of the machine learning classifier and predictor
 variables. Uncheck any bands, coefficients, or ancillary data that you
@@ -98,7 +99,7 @@ website <http://sites.bu.edu/measures/>`__.
 .. figure:: ../img/glance_grids.png
    :alt: app third parameters
 
-   app third parameters
+   The global GLanCE grid. 
 
 There are four ways you can specify a tile to run in addition to
 manually defining the study region or selecting a country. The simplest
@@ -109,7 +110,7 @@ loaded as the study region.
 .. figure:: ../img/classifyApp5.png
    :alt: app region 1
 
-   app region 1
+   Define study region from the global grid. 
 
 Alternatively, you can manually define the study region by clicking on
 five points on the map that define the borders.
@@ -117,7 +118,7 @@ five points on the map that define the borders.
 .. figure:: ../img/classifyApp4.png
    :alt: app region 1
 
-   app region 1
+   Manually define study region. 
 
 The other options are to manually define output grids based on their
 tile IDs, drawing on the map to specify multiple grids, or selecting a
@@ -128,7 +129,7 @@ boundary will be the study region.
 .. figure:: ../img/classifyApp6.png
    :alt: app region 1
 
-   app region 1
+   Or an entire country!
 
 The final set of parameters relate to the training data. An example
 training dataset is provided as a FeatureCollection for the seven
@@ -140,7 +141,7 @@ FeatureCollection or only the points that fall within the study region.
 .. figure:: ../img/classifyApp7.png
    :alt: app region 1
 
-   app region 1
+   Classification of the first CCDC segment. 
 
 Note, the classification runs quicker if the predictor data for each training 
 point is saved in the feature's properties (as opposed to being calculated
@@ -173,7 +174,7 @@ classification.
 .. figure:: ../img/lcApp1.png
    :alt: app region 1
 
-   app region 1
+   Land cover classification for 2001-01-01. 
 
 This app also has the function to add a change between that represents
 conversion from one or multiple classes at a specified date to a
@@ -194,4 +195,4 @@ and corresponding numeric value, and optionally provide a palette.
 .. figure:: ../img/lcApp2.PNG
    :alt: app region 1
 
-   app region 1
+   Land cover in 2001 and deforestation between 2001 and 2014. 
