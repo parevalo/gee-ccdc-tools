@@ -196,3 +196,12 @@ and corresponding numeric value, and optionally provide a palette.
    :alt: app region 1
 
    Land cover in 2001 and deforestation between 2001 and 2014. 
+
+By default, an opaque hillshade layer is loaded on top of the classification. 
+I find this helps provide context when viewing landscapes that I am 
+unfamiliar with. However, you can simply turn this off in the layers tab. 
+
+.. figure:: ../img/lcApp3.png
+   :alt: hillshade
+
+   Classified map with a hillshade overlay. 
