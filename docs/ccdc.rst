@@ -65,7 +65,7 @@ known in advance how many temporal segments will be obtained for each
 pixel. However, operating on those arrays and displaying them tends to
 be slower than using a regular ``ee.Image()``. For this reason, we
 convert the array image results into a regular image using the
-``utils.CCDC.newBuildCcdcImage`` function. The function expects the CCDC
+``utils.CCDC.buildCcdImage`` function. The function expects the CCDC
 results, the number of segments we want to extract, and the names of the
 spectral bands.
 
