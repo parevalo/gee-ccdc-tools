@@ -128,12 +128,14 @@ attribute named 'year'.
 Get predictor data for each training point
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This final step is not technically necessary as it can be done prior to
-submitting the classification, but it allows for quicker a
-classification that loads "on the fly". This is useful for testing
-classification parameters. The function to do is called
-'getTrainingCoefsAtDate'. First, however, we need to construct the CCDC
-coefficient image to sample from.
+We need to extract predictor data for each training point before we can apply
+a classifier. We can do this either  manually right before submitting the 
+classification, or we can extract the predictors in advance and store them as 
+properties of each of the training points. For this tutorial we will use the 
+second way, because it enables a faster classification that will load "on the fly". 
+This is useful for testing classification parameters. The function to do this 
+is called 'getTrainingCoefsAtDate'. First, however, we need to construct the 
+CCDC coefficient image to sample from.
 
 .. code:: javascript
 

@@ -18,7 +18,7 @@ https://code.earthengine.google.com/?scriptPath=projects%2FGLANCE%3ATutorial%2FP
 Classification requirements:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  The training data must be specified in the format described in Part 1
+-  The training data must be specified in the format described in Part 2
    of this tutorial.
 -  A machine learning classifier.
 
