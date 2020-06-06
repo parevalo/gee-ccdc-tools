@@ -1,4 +1,4 @@
-Obtaining coefficients, changes and synthetic images
+Obtaining coefficients, changes and synthetic images (API)
 =====================================================================
 
 Access the API and load CCDC results

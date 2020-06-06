@@ -34,6 +34,7 @@ __________
 .. toctree::
    :maxdepth: 2
 
+   ccdc_viz
    lcgui
    lctut
    ccdc
