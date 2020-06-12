@@ -5,11 +5,11 @@ This is the documentation for the toolbox to use the Continuous Change Detection
 
 .. _Google Earth Engine: https://earthengine.google.com/
 
-CCDC is used to monitor changes in land cover, land use, or condition using dense time series of satellite imagery. As the name suggests, there are two primary components: change detection and classification. CCDC has primarily been applied using Landsat data, but these tools are designed to be data agnostic. This toolbox provides applications and a Javascript API for performing all necessary steps in using CCDC, including:
+CCDC is used to monitor changes in land cover, land use, or condition using dense time series of satellite imagery. As the name suggests, there are two primary components: change detection and classification. CCDC has primarily been applied using Landsat data, but these tools are designed to be data agnostic. This toolbox provides applications and a Javascript API for performing all necessary steps in using CCDC, which include:
 
 * Visualizing pixel-based time series and CCDC model fits
 * Performing change detection for entire study regions
-* Visualiing CCDC coefficient images
+* Viewing CCDC coefficient images
 * Producing "synthetic" imagery
 * Land cover classification
 * Creating maps of land cover/use change
