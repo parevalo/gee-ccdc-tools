@@ -118,7 +118,7 @@ and it is computed with the ``getMultiSynthetic`` function.
     var SUB_BANDS = ['RED', 'NIR', 'SWIR1', 'SWIR2']
 
     // Obtain synthetic image
-    var synt = utils.CCDC.getMultiSynthetic(ccdImage, formattedDate, BANDS, SEGS)
+    var synt = utils.CCDC.getMultiSynthetic(ccdImage, formattedDate, 1, BANDS, SEGS)
 
 Get change information
 ~~~~~~~~~~~~~~~~~~~~~~
