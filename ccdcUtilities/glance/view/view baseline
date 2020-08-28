@@ -1,9 +1,0 @@
-var results = require('projects/GLANCE:ccdcUtilities/results')
-
-
-var palette = ['#386cb0', 'white', 'red', 'black', '#33a02c', '#b2df8a', '#ffff99', 'brown']
-var folder = 'projects/GLANCE/RESULTS/CLASSIFICATION/VERSION_1/SA/baseline'
-var col = ee.ImageCollection(results.assetsToCollection(folder, 'Image', 'SAbaseline')).mosaic()
-print(col)
-var viz = {min: 1, max: 8, palette: palette}
-Map.addLayer(col, viz, 'Baseline coefs ' + '2002-01-01')
