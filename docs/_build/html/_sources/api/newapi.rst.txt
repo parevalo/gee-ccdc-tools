@@ -1,0 +1,10 @@
+====================
+API
+====================
+
+.. :js:module:`ccdc.js`
+
+.. js:autofunction:: buildSegmentTag
+
+.. js:autofunction:: buildBandTag
+

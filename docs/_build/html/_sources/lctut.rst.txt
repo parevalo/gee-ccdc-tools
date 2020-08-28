@@ -1,5 +1,5 @@
-Land cover tutorial
-===================
+Land cover tutorial (API)
+=========================
 
 .. toctree::
    :maxdepth: 2

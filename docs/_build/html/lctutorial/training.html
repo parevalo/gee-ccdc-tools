@@ -1,15 +1,18 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Part 2: Prepare training data &mdash; GEE CCDC Tools 0.0.1 documentation</title>
+  <title>Part 2: Prepare training data &mdash; GLANCE 0.0.1 documentation</title>
   
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
 
   
   
@@ -17,7 +20,9 @@
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -29,10 +34,6 @@
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Part 3: Classify time series segments" href="classify.html" />
@@ -50,7 +51,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> GEE CCDC Tools
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> GLANCE
           
 
           
@@ -73,6 +74,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -84,7 +86,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../background.html">Background</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="../lctut.html">Land cover tutorial</a><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../ccdc_viz.html">CCDC Results Visualization Tutorial (GUI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lcgui.html">Land cover tutorial (GUI)</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../lctut.html">Land cover tutorial (API)</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="change.html">Part 1: Submit Change Detection</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Part 2: Prepare training data</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#training-data-requirements">Training data requirements:</a></li>
@@ -100,12 +104,16 @@
 <li class="toctree-l2"><a class="reference internal" href="mapping.html">Part 4: Land Cover Mapping</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../ccdc.html">Obtaining coefficients, changes and synthetic images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ccdc.html">Obtaining coefficients, changes and synthetic images (API)</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/api.html">API REFERENCE</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -115,7 +123,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">GEE CCDC Tools</a>
+          <a href="../index.html">GLANCE</a>
         
       </nav>
 
@@ -144,9 +152,9 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="../lctut.html">Land cover tutorial</a> &raquo;</li>
+          <li><a href="../lctut.html">Land cover tutorial (API)</a> &raquo;</li>
         
       <li>Part 2: Prepare training data</li>
     
@@ -198,11 +206,11 @@ corresponds to the land cover label.</p></li>
 on <a class="reference external" href="https://developers.google.com/earth-engine/importing">Google’s Developer
 Page</a>. However,
 it’s worth making sure your data is the correct format. You can do that
-by printing out the first feature. Note that in this tutorial, all
-capitalized text in code blocks indicate paths that assets that you
-should replace with your own corresponding path.</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">trainingPath</span> <span class="o">=</span> <span class="s1">&#39;PATH/TO/YOUR/TRAININGDATA&#39;</span>
-<span class="kd">var</span> <span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">FeatureCollection</span><span class="p">(</span><span class="nx">trainingPath</span><span class="p">)</span>
+by printing out the first feature.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Load example parameter file</span>
+<span class="kd">var</span> <span class="nx">params</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;projects/GLANCE:Tutorial/params.js&#39;</span><span class="p">)</span>
+
+<span class="kd">var</span> <span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">FeatureCollection</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">trainingPath</span><span class="p">)</span>
 <span class="nx">print</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">first</span><span class="p">())</span>
 </pre></div>
 </div>
@@ -251,15 +259,14 @@ with the following code:</p>
   <span class="p">.</span><span class="nx">remap</span><span class="p">([</span><span class="s1">&#39;forest&#39;</span><span class="p">,</span><span class="s1">&#39;agriculture&#39;</span><span class="p">,</span><span class="s1">&#39;water&#39;</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span><span class="s1">&#39;landcover&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>This can also be done using the ‘remapLC’ function in our API. See API
-documentation for a full description of available functions (todo).</p>
+<p>This can also be done using the ‘remapLC’ function in our API. See the <a class="reference external" href="https://gee-tutorials.readthedocs.io/en/latest/api/api.html">API documentation</a> for a full description of available functions.</p>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// First load the API file</span>
 <span class="kd">var</span> <span class="nx">utils</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;projects/GLANCE:ccdcUtilities/api&#39;</span><span class="p">)</span>
 
 <span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">remapLC</span><span class="p">(</span>
   <span class="nx">fakeFC</span><span class="p">,</span> <span class="s1">&#39;lc_string&#39;</span><span class="p">,</span> <span class="s1">&#39;landcover&#39;</span><span class="p">,[</span><span class="s1">&#39;forest&#39;</span><span class="p">,</span><span class="s1">&#39;agriculture&#39;</span><span class="p">,</span><span class="s1">&#39;water&#39;</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
 
-<span class="nx">print</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">first</span><span class="p">())</span>
+<span class="nx">print</span><span class="p">(</span><span class="s1">&#39;First training point: &#39;</span><span class="p">,</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">first</span><span class="p">())</span>
 </pre></div>
 </div>
 <p>Note that there should now be an attribute called ‘landcover’ that is
@@ -274,57 +281,68 @@ corresponds to forest in 2014, then the CCDC coefficients for 2014 will
 be used for training. If all of your training data corresponds a certain
 year, you can add the attribute with a simple bit of code. In this
 example the training data corresponds to 2014 and it is assigned to an
-attribute named ‘year’. .</p>
+attribute named ‘year’.</p>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">trainingData</span>  <span class="o">=</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">feat</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">return</span> <span class="nx">feat</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;year&#39;</span><span class="p">,</span><span class="mi">2014</span><span class="p">)})</span>
-</pre></div>
-</div>
-<p>Your training data might have a ‘start’ and ‘end’ attribute, in which
-case we have a function for calculating the middle date. In this
-example, the start year attribute is ‘Start_Year’, the end attribute is
-‘End_Year’, and the output attribute name is ‘Middle_Year’</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">getMiddleDate</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">,</span> <span class="s1">&#39;Start_Year&#39;</span><span class="p">,</span><span class="s1">&#39;End_Year&#39;</span><span class="p">,</span><span class="s1">&#39;Middle_Year&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="get-predictor-data-for-each-training-point">
 <h2>Get predictor data for each training point<a class="headerlink" href="#get-predictor-data-for-each-training-point" title="Permalink to this headline">¶</a></h2>
-<p>This final step is not technically necessary as it can be done prior to
-submitting the classification, but it allows for quicker a
-classification that loads “on the fly”. This is useful for testing
-classification parameters. The function to do is called
-‘getTrainingCoefsAtDate’. First, however, we need to construct the CCDC
-coefficient image to sample from.</p>
+<p>We need to extract predictor data for each training point before we can apply
+a classifier. We can do this either  manually right before submitting the
+classification, or we can extract the predictors in advance and store them as
+properties of each of the training points. For this tutorial we will use the
+second way, because it enables a faster classification that will load “on the fly”.
+This is useful for testing classification parameters. The function to do this
+is called ‘getTrainingCoefsAtDate’. First, however, we need to construct the
+CCDC coefficient image to sample from.</p>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Define bands to use in classification</span>
-<span class="kd">var</span> <span class="nx">bands</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;BLUE&quot;</span><span class="p">,</span><span class="s2">&quot;GREEN&quot;</span><span class="p">,</span><span class="s2">&quot;RED&quot;</span><span class="p">,</span><span class="s2">&quot;NIR&quot;</span><span class="p">,</span><span class="s2">&quot;SWIR1&quot;</span><span class="p">,</span><span class="s2">&quot;SWIR2&quot;</span><span class="p">,</span> <span class="s2">&quot;TEMP&quot;</span><span class="p">]</span>
+<span class="kd">var</span> <span class="nx">bands</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">bandNames</span>
 
 <span class="c1">// Define coefficients to use in classification</span>
-<span class="kd">var</span> <span class="nx">coefs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;INTP&quot;</span><span class="p">,</span> <span class="s2">&quot;SLP&quot;</span><span class="p">,</span><span class="s2">&quot;COS&quot;</span><span class="p">,</span> <span class="s2">&quot;SIN&quot;</span><span class="p">,</span><span class="s2">&quot;RMSE&quot;</span><span class="p">,</span><span class="s2">&quot;COS2&quot;</span><span class="p">,</span><span class="s2">&quot;SIN2&quot;</span><span class="p">,</span><span class="s2">&quot;COS3&quot;</span><span class="p">,</span><span class="s2">&quot;SIN3&quot;</span><span class="p">]</span>
+<span class="kd">var</span> <span class="nx">coefs</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">coefs</span>
 
 <span class="c1">// Segment ids</span>
-<span class="kd">var</span> <span class="nx">segs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;S1&quot;</span><span class="p">,</span> <span class="s2">&quot;S2&quot;</span><span class="p">,</span> <span class="s2">&quot;S3&quot;</span><span class="p">,</span> <span class="s2">&quot;S4&quot;</span><span class="p">,</span> <span class="s2">&quot;S5&quot;</span><span class="p">,</span> <span class="s2">&quot;S6&quot;</span><span class="p">,</span><span class="s2">&quot;S7&quot;</span><span class="p">,</span><span class="s2">&quot;S8&quot;</span><span class="p">,</span><span class="s2">&quot;S9&quot;</span><span class="p">]</span>
+<span class="kd">var</span> <span class="nx">segs</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">segs</span>
+
+<span class="c1">// Property corresponding to year of training data</span>
+<span class="kd">var</span> <span class="nx">yearProperty</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">yearProperty</span>
 
 <span class="c1">// CCDC change detection results from the first part of this tutorial.</span>
-<span class="kd">var</span> <span class="nx">ccdc</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">Image</span><span class="p">(</span><span class="s1">&#39;PATH/TO/CHANGERESULTS&#39;</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">coefImage</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">ImageCollection</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">changeResults</span><span class="p">)</span>
+  <span class="p">.</span><span class="nx">filterBounds</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">StudyRegion</span><span class="p">).</span><span class="nx">mosaic</span><span class="p">()</span>
 
-<span class="c1">// Fill no data values</span>
-<span class="kd">var</span> <span class="nx">newccd</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">newFillNoData</span><span class="p">(</span><span class="nx">ccdc</span><span class="p">,</span> <span class="nx">coefs</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="nx">bands</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span>
-<span class="kd">var</span> <span class="nx">ccdImage</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">newBuildCcdcImage</span><span class="p">(</span><span class="nx">newccd</span><span class="p">,</span> <span class="nx">segs</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="nx">bands</span><span class="p">)</span>
+<span class="c1">// Load ccd image stack with coefficients and change information</span>
+
+<span class="kd">var</span> <span class="nx">ccdImage</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">loadResults</span><span class="p">(</span>
+  <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">resultFormat</span><span class="p">,</span>
+  <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">changeResults</span><span class="p">,</span>
+  <span class="nx">params</span><span class="p">.</span><span class="nx">StudyRegion</span><span class="p">)</span>
+
+<span class="nx">print</span><span class="p">(</span><span class="s1">&#39;CCD Image:&#39;</span><span class="p">,</span> <span class="nx">ccdImage</span><span class="p">)</span>
+
+<span class="c1">// Finally, get ancillary topographic and climate data</span>
+<span class="kd">var</span> <span class="nx">ancillary</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Inputs</span><span class="p">.</span><span class="nx">getAncillary</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>Now that we have the CCDC image we can ocalculate the predictor data for
+<p>Now that we have the CCDC image we can calculate the predictor data for
 each point, filter features that return no data, and export the results
 as an asset.</p>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">getTrainingCoefsAtDate</span><span class="p">(</span>
-  <span class="nx">trainingData</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="s1">&#39;Middle_Year&#39;</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">ccdImage</span><span class="p">)</span>
-<span class="kd">var</span> <span class="nx">trainingDate</span> <span class="o">=</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">ee</span><span class="p">.</span><span class="nx">Filter</span><span class="p">.</span><span class="nx">notNull</span><span class="p">([</span><span class="s1">&#39;BLUE_COS&#39;</span><span class="p">]))</span>
+  <span class="nx">trainingData</span><span class="p">,</span> <span class="nx">coefs</span><span class="p">,</span> <span class="nx">bands</span><span class="p">,</span> <span class="nx">yearProperty</span><span class="p">,</span> <span class="nx">ancillary</span><span class="p">,</span> <span class="nx">ccdImage</span><span class="p">,</span> <span class="nx">segs</span><span class="p">)</span>
 
-<span class="nx">print</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">first</span><span class="p">())</span>
+
+<span class="c1">// Filter points with no data</span>
+<span class="kd">var</span> <span class="nx">testBand</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">bandNames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">coefs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">ee</span><span class="p">.</span><span class="nx">Filter</span><span class="p">.</span><span class="nx">notNull</span><span class="p">([</span><span class="nx">testBand</span><span class="p">]))</span>
+
+<span class="nx">print</span><span class="p">(</span><span class="s1">&#39;First training point with predictors:&#39;</span><span class="p">,</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">first</span><span class="p">())</span>
 
 <span class="nx">Export</span><span class="p">.</span><span class="nx">table</span><span class="p">.</span><span class="nx">toAsset</span><span class="p">({</span>
   <span class="nx">collection</span><span class="o">:</span> <span class="nx">trainingData</span><span class="p">,</span>
   <span class="nx">description</span><span class="o">:</span> <span class="s1">&#39;trainingDataProcessed&#39;</span><span class="p">,</span>
-  <span class="nx">assetId</span><span class="o">:</span> <span class="s1">&#39;PATH/TO/NEW/ASSET&#39;</span><span class="p">})</span>
+  <span class="nx">assetId</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">trainingPathPredictors</span><span class="p">})</span>
 </pre></div>
 </div>
 <p>You should now see in the feature attributes all of the predictor data
@@ -362,11 +380,19 @@ shuffle the sample and assign a unique ID to a given attribute name.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Eric Bullock, Paulo Arévalo
+        
+        &copy; Copyright 2020, Erick Bullock, Paulo Arevalo
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -377,7 +403,6 @@ shuffle the sample and assign a unique ID to a given attribute name.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

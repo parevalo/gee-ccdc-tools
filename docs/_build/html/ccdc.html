@@ -1,15 +1,18 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Obtaining coefficients, changes and synthetic images &mdash; GEE CCDC Tools 0.0.1 documentation</title>
+  <title>Obtaining coefficients, changes and synthetic images (API) &mdash; GLANCE 0.0.1 documentation</title>
   
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
 
   
   
@@ -17,7 +20,9 @@
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -29,12 +34,9 @@
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API REFERENCE" href="api/api.html" />
     <link rel="prev" title="Part 4: Land Cover Mapping" href="lctutorial/mapping.html" /> 
 </head>
 
@@ -49,7 +51,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> GEE CCDC Tools
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> GLANCE
           
 
           
@@ -72,6 +74,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -83,8 +86,10 @@
 <li class="toctree-l1"><a class="reference internal" href="background.html">Background</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="lctut.html">Land cover tutorial</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Obtaining coefficients, changes and synthetic images</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="ccdc_viz.html">CCDC Results Visualization Tutorial (GUI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lcgui.html">Land cover tutorial (GUI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lctut.html">Land cover tutorial (API)</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Obtaining coefficients, changes and synthetic images (API)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#access-the-api-and-load-ccdc-results">Access the API and load CCDC results</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#obtain-ccdc-coefficients-and-synthetic-images">Obtain CCDC coefficients and synthetic images</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#get-date-in-the-right-format">Get date in the right format</a></li>
@@ -97,10 +102,14 @@
 </ul>
 </li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/api.html">API REFERENCE</a></li>
+</ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -110,7 +119,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">GEE CCDC Tools</a>
+          <a href="index.html">GLANCE</a>
         
       </nav>
 
@@ -139,9 +148,9 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Obtaining coefficients, changes and synthetic images</li>
+      <li>Obtaining coefficients, changes and synthetic images (API)</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -160,20 +169,20 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="obtaining-coefficients-changes-and-synthetic-images">
-<h1>Obtaining coefficients, changes and synthetic images<a class="headerlink" href="#obtaining-coefficients-changes-and-synthetic-images" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="obtaining-coefficients-changes-and-synthetic-images-api">
+<h1>Obtaining coefficients, changes and synthetic images (API)<a class="headerlink" href="#obtaining-coefficients-changes-and-synthetic-images-api" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="access-the-api-and-load-ccdc-results">
 <h2>Access the API and load CCDC results<a class="headerlink" href="#access-the-api-and-load-ccdc-results" title="Permalink to this headline">¶</a></h2>
 <p>This tutorial requires access to the API. It also requires access to any
 results obtained from running the CCDC algorithm on Google Earth Engine
 (GEE). For this tutorial we can use the results created by the GEE team
-for the entire globe. As of March 27, 2020, these results include
+for the entire globe. As of May 27, 2020, these results include
 multiple runs with varying inputs and configurations, and therefore we
 need to filter the results for a specific model run before we can
-process them. A model run we have been using so far is the <code class="docutils literal notranslate"><span class="pre">'v5'</span></code>
-model, but others include the BRDF-corrected <code class="docutils literal notranslate"><span class="pre">'brdf'</span></code>, and <code class="docutils literal notranslate"><span class="pre">'x5'</span></code>.
+process them. A model run we have been using so far is the <code class="docutils literal notranslate"><span class="pre">'z_'</span></code>
+model, but others include the BRDF-corrected <code class="docutils literal notranslate"><span class="pre">'brdf'</span></code>.
 Until the GEE team publishes an official public dataset, we can use the
-<code class="docutils literal notranslate"><span class="pre">'v5'</span></code> or <code class="docutils literal notranslate"><span class="pre">'brdf'</span></code> for testing purposes. Finally, if we want to look
+<code class="docutils literal notranslate"><span class="pre">'z_'</span></code> or <code class="docutils literal notranslate"><span class="pre">'brdf'</span></code> for testing purposes. Finally, if we want to look
 at the results for a specific location we can filter them using the
 built-in <code class="docutils literal notranslate"><span class="pre">filterBounds</span></code> function, or remove it if we want to see the
 results for the current map view extent.</p>
@@ -182,7 +191,7 @@ results for the current map view extent.</p>
 
 <span class="c1">// Load the global results computed by the GEE team</span>
 <span class="kd">var</span> <span class="nx">ccdcCol</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">ImageCollection</span><span class="p">(</span><span class="s2">&quot;projects/CCDC/v2&quot;</span><span class="p">)</span>
-<span class="kd">var</span> <span class="nx">ccdc</span> <span class="o">=</span> <span class="nx">ccdcCol</span><span class="p">.</span><span class="nx">filterMetadata</span><span class="p">(</span><span class="s1">&#39;system:index&#39;</span><span class="p">,</span> <span class="s1">&#39;starts_with&#39;</span><span class="p">,</span> <span class="s1">&#39;v5_&#39;</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">ccdc</span> <span class="o">=</span> <span class="nx">ccdcCol</span><span class="p">.</span><span class="nx">filterMetadata</span><span class="p">(</span><span class="s1">&#39;system:index&#39;</span><span class="p">,</span> <span class="s1">&#39;starts_with&#39;</span><span class="p">,</span> <span class="s1">&#39;z_&#39;</span><span class="p">)</span>
                   <span class="p">.</span><span class="nx">filterBounds</span><span class="p">(</span><span class="nx">geometry</span><span class="p">)</span>
                   <span class="p">.</span><span class="nx">mosaic</span><span class="p">()</span>
 </pre></div>
@@ -218,7 +227,7 @@ known in advance how many temporal segments will be obtained for each
 pixel. However, operating on those arrays and displaying them tends to
 be slower than using a regular <code class="docutils literal notranslate"><span class="pre">ee.Image()</span></code>. For this reason, we
 convert the array image results into a regular image using the
-<code class="docutils literal notranslate"><span class="pre">utils.CCDC.newBuildCcdcImage</span></code> function. The function expects the CCDC
+<code class="docutils literal notranslate"><span class="pre">utils.CCDC.buildCcdImage</span></code> function. The function expects the CCDC
 results, the number of segments we want to extract, and the names of the
 spectral bands.</p>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Spectral band names. This list contains all possible bands in this dataset</span>
@@ -228,7 +237,7 @@ spectral bands.</p>
 <span class="kd">var</span> <span class="nx">SEGS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;S1&quot;</span><span class="p">,</span> <span class="s2">&quot;S2&quot;</span><span class="p">,</span> <span class="s2">&quot;S3&quot;</span><span class="p">,</span> <span class="s2">&quot;S4&quot;</span><span class="p">,</span> <span class="s2">&quot;S5&quot;</span><span class="p">,</span> <span class="s2">&quot;S6&quot;</span><span class="p">,</span> <span class="s2">&quot;S7&quot;</span><span class="p">,</span> <span class="s2">&quot;S8&quot;</span><span class="p">,</span> <span class="s2">&quot;S9&quot;</span><span class="p">,</span> <span class="s2">&quot;S10&quot;</span><span class="p">]</span>
 
 <span class="c1">// Obtain CCDC results in &#39;regular&#39; ee.Image format</span>
-<span class="kd">var</span> <span class="nx">ccdImage</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">newBuildCcdcImage</span><span class="p">(</span><span class="nx">ccdc</span><span class="p">,</span> <span class="nx">SEGS</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="nx">BANDS</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">ccdImage</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">buildCcdImage</span><span class="p">(</span><span class="nx">ccdc</span><span class="p">,</span> <span class="nx">SEGS</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="nx">BANDS</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -250,7 +259,7 @@ function.</p>
 <span class="kd">var</span> <span class="nx">SELECT_COEFS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;INTP&quot;</span><span class="p">,</span> <span class="s2">&quot;SLP&quot;</span><span class="p">,</span> <span class="s2">&quot;COS&quot;</span><span class="p">,</span> <span class="s2">&quot;SIN&quot;</span><span class="p">,</span> <span class="s2">&quot;COS2&quot;</span><span class="p">,</span> <span class="s2">&quot;SIN2&quot;</span><span class="p">,</span> <span class="s2">&quot;COS3&quot;</span><span class="p">,</span> <span class="s2">&quot;SIN3&quot;</span><span class="p">,</span> <span class="s2">&quot;RMSE&quot;</span><span class="p">]</span>
 
 <span class="c1">// Obtain coefficients</span>
-<span class="kd">var</span> <span class="nx">coefs</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">get_multi_coefs</span><span class="p">(</span><span class="nx">ccdImage</span><span class="p">,</span> <span class="nx">formattedDate</span><span class="p">,</span> <span class="nx">SELECT_BANDS</span><span class="p">,</span> <span class="nx">SELECT_COEFS</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="nx">SEGS</span><span class="p">,</span> <span class="s1">&#39;after&#39;</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">coefs</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">getMultiCoefs</span><span class="p">(</span><span class="nx">ccdImage</span><span class="p">,</span> <span class="nx">formattedDate</span><span class="p">,</span> <span class="nx">SELECT_BANDS</span><span class="p">,</span> <span class="nx">SELECT_COEFS</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="nx">SEGS</span><span class="p">,</span> <span class="s1">&#39;after&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -264,7 +273,7 @@ and it is computed with the <code class="docutils literal notranslate"><span cla
 <span class="kd">var</span> <span class="nx">SUB_BANDS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;RED&#39;</span><span class="p">,</span> <span class="s1">&#39;NIR&#39;</span><span class="p">,</span> <span class="s1">&#39;SWIR1&#39;</span><span class="p">,</span> <span class="s1">&#39;SWIR2&#39;</span><span class="p">]</span>
 
 <span class="c1">// Obtain synthetic image</span>
-<span class="kd">var</span> <span class="nx">synt</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">getMultiSynthetic</span><span class="p">(</span><span class="nx">ccdImage</span><span class="p">,</span> <span class="nx">formattedDate</span><span class="p">,</span> <span class="nx">BANDS</span><span class="p">,</span> <span class="nx">SEGS</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">synt</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">getMultiSynthetic</span><span class="p">(</span><span class="nx">ccdImage</span><span class="p">,</span> <span class="nx">formattedDate</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">BANDS</span><span class="p">,</span> <span class="nx">SEGS</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -306,6 +315,8 @@ specified time period.</p></li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
+        <a href="api/api.html" class="btn btn-neutral float-right" title="API REFERENCE" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
       
         <a href="lctutorial/mapping.html" class="btn btn-neutral float-left" title="Part 4: Land Cover Mapping" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
@@ -316,11 +327,19 @@ specified time period.</p></li>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Eric Bullock, Paulo Arévalo
+        
+        &copy; Copyright 2020, Erick Bullock, Paulo Arevalo
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -331,7 +350,6 @@ specified time period.</p></li>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

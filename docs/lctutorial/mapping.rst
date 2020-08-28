@@ -61,6 +61,7 @@ Note that the post-disturbance land cover is almost entirely from the
    :alt: img1
 
    img1
+
 In the above example, the Forest class corresponds to the number 5. This
 process can be repeated to map any type of land cover change for the
 classes in your legend. For example, the following example shows

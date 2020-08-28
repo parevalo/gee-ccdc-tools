@@ -44,6 +44,7 @@ forest, converted to cropland, and then converted again to a plantation.
    :alt: Figure 1. TSTools Earth Engine App
 
    Figure 1. TSTools Earth Engine App
+
 In that example, there were two changes detected: one in 2007 and one in
 2010. At this point there are no classification labels associated with
 the changes, they are simply structural breaks found by the algorithm.
@@ -104,6 +105,7 @@ number of model breaks. Documentation on the CCDC parameters are in the
 GEE Docs, so I will not elaborate on them here.
 
 .. code:: javascript
+
     // First define parameters 
     var changeParams = {
         collection: filteredLandsat,

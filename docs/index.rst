@@ -49,11 +49,11 @@ __________
    lctut
    ccdc
 
-API
+API REFERENCE
 ___
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 1 
 
 
    api/api

@@ -102,5 +102,6 @@ classify the CCDC segments.
    :alt: img1
 
    img1
+
 And just like that, we can get a classified land cover map! The layer
 added represents the first segment land cover.

@@ -1,4 +1,4 @@
-Obtaining coefficients, changes and synthetic images
+Obtaining coefficients, changes and synthetic images (API)
 =====================================================================
 
 Access the API and load CCDC results
@@ -7,13 +7,13 @@ Access the API and load CCDC results
 This tutorial requires access to the API. It also requires access to any
 results obtained from running the CCDC algorithm on Google Earth Engine
 (GEE). For this tutorial we can use the results created by the GEE team
-for the entire globe. As of March 27, 2020, these results include
+for the entire globe. As of May 27, 2020, these results include
 multiple runs with varying inputs and configurations, and therefore we
 need to filter the results for a specific model run before we can
-process them. A model run we have been using so far is the ``'v5'``
-model, but others include the BRDF-corrected ``'brdf'``, and ``'x5'``.
+process them. A model run we have been using so far is the ``'z_'``
+model, but others include the BRDF-corrected ``'brdf'``.
 Until the GEE team publishes an official public dataset, we can use the
-``'v5'`` or ``'brdf'`` for testing purposes. Finally, if we want to look
+``'z_'`` or ``'brdf'`` for testing purposes. Finally, if we want to look
 at the results for a specific location we can filter them using the
 built-in ``filterBounds`` function, or remove it if we want to see the
 results for the current map view extent.
@@ -25,7 +25,7 @@ results for the current map view extent.
 
     // Load the global results computed by the GEE team
     var ccdcCol = ee.ImageCollection("projects/CCDC/v2")
-    var ccdc = ccdcCol.filterMetadata('system:index', 'starts_with', 'v5_')
+    var ccdc = ccdcCol.filterMetadata('system:index', 'starts_with', 'z_')
                       .filterBounds(geometry)
                       .mosaic()
 
@@ -65,7 +65,7 @@ known in advance how many temporal segments will be obtained for each
 pixel. However, operating on those arrays and displaying them tends to
 be slower than using a regular ``ee.Image()``. For this reason, we
 convert the array image results into a regular image using the
-``utils.CCDC.newBuildCcdcImage`` function. The function expects the CCDC
+``utils.CCDC.buildCcdImage`` function. The function expects the CCDC
 results, the number of segments we want to extract, and the names of the
 spectral bands.
 
@@ -78,7 +78,7 @@ spectral bands.
     var SEGS = ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10"]
 
     // Obtain CCDC results in 'regular' ee.Image format
-    var ccdImage = utils.CCDC.newBuildCcdcImage(ccdc, SEGS.length, BANDS)
+    var ccdImage = utils.CCDC.buildCcdImage(ccdc, SEGS.length, BANDS)
 
 Get coefficients
 ~~~~~~~~~~~~~~~~
@@ -102,7 +102,7 @@ function.
     var SELECT_COEFS = ["INTP", "SLP", "COS", "SIN", "COS2", "SIN2", "COS3", "SIN3", "RMSE"]
 
     // Obtain coefficients
-    var coefs = utils.CCDC.get_multi_coefs(ccdImage, formattedDate, SELECT_BANDS, SELECT_COEFS, true, SEGS, 'after')
+    var coefs = utils.CCDC.getMultiCoefs(ccdImage, formattedDate, SELECT_BANDS, SELECT_COEFS, true, SEGS, 'after')
 
 Compute synthetic image
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -118,7 +118,7 @@ and it is computed with the ``getMultiSynthetic`` function.
     var SUB_BANDS = ['RED', 'NIR', 'SWIR1', 'SWIR2']
 
     // Obtain synthetic image
-    var synt = utils.CCDC.getMultiSynthetic(ccdImage, formattedDate, BANDS, SEGS)
+    var synt = utils.CCDC.getMultiSynthetic(ccdImage, formattedDate, 1, BANDS, SEGS)
 
 Get change information
 ~~~~~~~~~~~~~~~~~~~~~~

@@ -1,15 +1,18 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>GEE tools for CCDC &mdash; GEE CCDC Tools 0.0.1 documentation</title>
+  <title>Google Earth Engine tools for CCDC &mdash; GLANCE 0.0.1 documentation</title>
   
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
 
   
   
@@ -17,7 +20,9 @@
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -29,10 +34,6 @@
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Background" href="background.html" /> 
@@ -49,7 +50,7 @@
           
 
           
-            <a href="#" class="icon icon-home"> GEE CCDC Tools
+            <a href="#" class="icon icon-home" alt="Documentation Home"> GLANCE
           
 
           
@@ -72,6 +73,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -83,16 +85,19 @@
 <li class="toctree-l1"><a class="reference internal" href="background.html">Background</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="lctut.html">Land cover tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ccdc.html">Obtaining coefficients, changes and synthetic images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ccdc_viz.html">CCDC Results Visualization Tutorial (GUI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lcgui.html">Land cover tutorial (GUI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lctut.html">Land cover tutorial (API)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ccdc.html">Obtaining coefficients, changes and synthetic images (API)</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api/api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/api.html">API REFERENCE</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -102,7 +107,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">GEE CCDC Tools</a>
+          <a href="#">GLANCE</a>
         
       </nav>
 
@@ -131,9 +136,9 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="#">Docs</a> &raquo;</li>
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
         
-      <li>GEE tools for CCDC</li>
+      <li>Google Earth Engine tools for CCDC</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -152,9 +157,18 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="gee-tools-for-ccdc">
-<h1>GEE tools for CCDC<a class="headerlink" href="#gee-tools-for-ccdc" title="Permalink to this headline">¶</a></h1>
-<p>This is the documentation for the toolbox to process CCDC outputs in Google Earth Engine</p>
+  <div class="section" id="google-earth-engine-tools-for-ccdc">
+<h1>Google Earth Engine tools for CCDC<a class="headerlink" href="#google-earth-engine-tools-for-ccdc" title="Permalink to this headline">¶</a></h1>
+<p>This is the documentation for the toolbox to use the Continuous Change Detection and Classification (CCDC) algorithm on the Google Earth Engine.</p>
+<p>CCDC is used to monitor changes in land cover, land use, or condition using dense time series of satellite imagery. As the name suggests, there are two primary components: change detection and classification. CCDC has primarily been applied using Landsat data, but these tools are designed to be data agnostic. This toolbox provides applications and a Javascript API for performing all necessary steps in using CCDC, which include:</p>
+<ul class="simple">
+<li><p>Visualizing pixel-based time series and CCDC model fits</p></li>
+<li><p>Performing change detection for entire study regions</p></li>
+<li><p>Viewing CCDC coefficient images</p></li>
+<li><p>Producing “synthetic” imagery</p></li>
+<li><p>Land cover classification</p></li>
+<li><p>Creating maps of land cover/use change</p></li>
+</ul>
 <p>This documentation and the tools are a work in progress. For any questions contact us at: <a class="reference external" href="mailto:parevalo&#37;&#52;&#48;bu&#46;edu">parevalo<span>&#64;</span>bu<span>&#46;</span>edu</a> or <a class="reference external" href="mailto:bullocke&#37;&#52;&#48;bu&#46;edu">bullocke<span>&#64;</span>bu<span>&#46;</span>edu</a>.</p>
 <p>Contents</p>
 <div class="section" id="background">
@@ -174,26 +188,37 @@
 <h2>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="lctut.html">Land cover tutorial</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="ccdc_viz.html">CCDC Results Visualization Tutorial (GUI)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ccdc_viz.html#creating-charts-of-time-series-and-interacting-with-them">Creating charts of time series and interacting with them</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ccdc_viz.html#loading-ccdc-results">Loading CCDC results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ccdc_viz.html#visualizing-ccd-coefficients-and-change-information">Visualizing CCD coefficients and change information</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lcgui.html">Land cover tutorial (GUI)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lctutorial/gui.html">CCDC Classification Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lctutorial/gui.html#classify-time-series-segments">1. Classify time series segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lctutorial/gui.html#create-land-cover-and-land-cover-change-maps">2. Create Land Cover and Land Cover Change Maps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lctut.html">Land cover tutorial (API)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="lctutorial/change.html">Part 1: Submit Change Detection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="lctutorial/training.html">Part 2: Prepare training data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="lctutorial/classify.html">Part 3: Classify time series segments</a></li>
 <li class="toctree-l2"><a class="reference internal" href="lctutorial/mapping.html">Part 4: Land Cover Mapping</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="ccdc.html">Obtaining coefficients, changes and synthetic images</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="ccdc.html">Obtaining coefficients, changes and synthetic images (API)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="ccdc.html#access-the-api-and-load-ccdc-results">Access the API and load CCDC results</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ccdc.html#obtain-ccdc-coefficients-and-synthetic-images">Obtain CCDC coefficients and synthetic images</a></li>
 </ul>
 </li>
 </ul>
 </div>
-</div>
-<div class="section" id="api">
-<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<p>API REFERENCE
+___</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api/api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/api.html">API REFERENCE</a></li>
 </ul>
 </div>
 </div>
@@ -217,11 +242,19 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Eric Bullock, Paulo Arévalo
+        
+        &copy; Copyright 2020, Erick Bullock, Paulo Arevalo
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -232,7 +265,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

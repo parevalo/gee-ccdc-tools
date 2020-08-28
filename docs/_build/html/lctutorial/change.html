@@ -1,15 +1,18 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Part 1: Submit Change Detection &mdash; GEE CCDC Tools 0.0.1 documentation</title>
+  <title>Part 1: Submit Change Detection &mdash; GLANCE 0.0.1 documentation</title>
   
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
 
   
   
@@ -17,7 +20,9 @@
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -29,14 +34,10 @@
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Part 2: Prepare training data" href="training.html" />
-    <link rel="prev" title="Land cover tutorial" href="../lctut.html" /> 
+    <link rel="prev" title="Land cover tutorial (API)" href="../lctut.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -50,7 +51,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> GEE CCDC Tools
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> GLANCE
           
 
           
@@ -73,6 +74,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -84,7 +86,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../background.html">Background</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="../lctut.html">Land cover tutorial</a><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../ccdc_viz.html">CCDC Results Visualization Tutorial (GUI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lcgui.html">Land cover tutorial (GUI)</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../lctut.html">Land cover tutorial (API)</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Part 1: Submit Change Detection</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#ccdc-api">CCDC API</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#building-and-image-stack">Building and image stack</a></li>
@@ -95,12 +99,16 @@
 <li class="toctree-l2"><a class="reference internal" href="mapping.html">Part 4: Land Cover Mapping</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../ccdc.html">Obtaining coefficients, changes and synthetic images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ccdc.html">Obtaining coefficients, changes and synthetic images (API)</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/api.html">API REFERENCE</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -110,7 +118,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">GEE CCDC Tools</a>
+          <a href="../index.html">GLANCE</a>
         
       </nav>
 
@@ -139,9 +147,9 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="../lctut.html">Land cover tutorial</a> &raquo;</li>
+          <li><a href="../lctut.html">Land cover tutorial (API)</a> &raquo;</li>
         
       <li>Part 1: Submit Change Detection</li>
     
@@ -227,18 +235,20 @@ cleaner the data the better. If you wish to build your own Image
 collection, I refer you to the GEE Examples repo. Alternatively, to
 obtain an image collection of Landsat 4, 5, 7, and 8 data that is masked
 using the cfmask band you can use the ‘getLandsat’ function in the
-‘Inputs’ module of our api.</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">allLandsat</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Inputs</span><span class="p">.</span><span class="nx">getLandsat</span><span class="p">()</span>
+‘Inputs’ module of our api. The parameters for building an image collection
+and running CCDC live within a seperate <a class="reference external" href="https://gee-tutorials.readthedocs.io/en/latest/lctutorial/params.html">parameter file</a></p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Load example parameter file</span>
+<span class="kd">var</span> <span class="nx">params</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;projects/GLANCE:Tutorial/params.js&#39;</span><span class="p">)</span>
 
 <span class="c1">// Filter by date and a location in Brazil</span>
-<span class="kd">var</span> <span class="nx">filteredLandsat</span> <span class="o">=</span> <span class="nx">allLandsat</span>
-    <span class="p">.</span><span class="nx">filterBounds</span><span class="p">(</span><span class="nx">ee</span><span class="p">.</span><span class="nx">Geometry</span><span class="p">.</span><span class="nx">Point</span><span class="p">([</span><span class="o">-</span><span class="mf">63.36221955604655</span><span class="p">,</span> <span class="o">-</span><span class="mf">10.611744341509555</span><span class="p">]))</span>
-    <span class="p">.</span><span class="nx">filterDate</span><span class="p">(</span><span class="s1">&#39;2000-01-01&#39;</span><span class="p">,</span><span class="s1">&#39;2020-01-01&#39;</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">filteredLandsat</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Inputs</span><span class="p">.</span><span class="nx">getLandsat</span><span class="p">()</span>
+    <span class="p">.</span><span class="nx">filterBounds</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">StudyRegion</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">filterDate</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">start</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">end</span><span class="p">)</span>
 
 <span class="nx">print</span><span class="p">(</span><span class="nx">filteredLandsat</span><span class="p">.</span><span class="nx">size</span><span class="p">())</span>
 </pre></div>
 </div>
-<p>The console should show that there are 484 images in the collection. It
+<p>The console should show that there are around images in the collection. It
 should be noted that CCDC uses all available Landsat data, even if part
 of the image is cloudy! That is because there can be many usable,
 cloud-free pixels even if a majority of the image is cloudy. Since CCDC
@@ -250,20 +260,20 @@ change information for every detected segment. That means that the
 dimensions for one pixel can be different than another, depending on the
 number of model breaks. Documentation on the CCDC parameters are in the
 GEE Docs, so I will not elaborate on them here.</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// First define parameters (note the Landsat collection is scaled by 10000, which affects the lambda parameter).</span>
-<span class="kd">var</span> <span class="nx">params</span> <span class="o">=</span> <span class="p">{</span>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// First define parameters</span>
+<span class="kd">var</span> <span class="nx">changeParams</span> <span class="o">=</span> <span class="p">{</span>
     <span class="nx">collection</span><span class="o">:</span> <span class="nx">filteredLandsat</span><span class="p">,</span>
-    <span class="nx">breakpointBands</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;GREEN&#39;</span><span class="p">,</span><span class="s1">&#39;RED&#39;</span><span class="p">,</span><span class="s1">&#39;NIR&#39;</span><span class="p">,</span><span class="s1">&#39;SWIR1&#39;</span><span class="p">,</span><span class="s1">&#39;SWIR2&#39;</span><span class="p">],</span>
-    <span class="nx">tmaskBands</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;GREEN&#39;</span><span class="p">,</span><span class="s1">&#39;SWIR2&#39;</span><span class="p">],</span>
-    <span class="nx">minObservations</span><span class="o">:</span> <span class="mi">6</span><span class="p">,</span>
-    <span class="nx">chiSquareProbability</span><span class="o">:</span> <span class="mf">.99</span><span class="p">,</span>
-    <span class="nx">minNumOfYearsScaler</span><span class="o">:</span> <span class="mf">1.33</span><span class="p">,</span>
-    <span class="nx">dateFormat</span><span class="o">:</span> <span class="mi">2</span><span class="p">,</span>
-    <span class="nx">lambda</span><span class="o">:</span> <span class="mi">20</span><span class="p">,</span>
-    <span class="nx">maxIterations</span><span class="o">:</span> <span class="mi">25000</span>
+    <span class="nx">breakpointBands</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">breakpointBands</span><span class="p">,</span>
+    <span class="nx">tmaskBands</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">tmaskBands</span><span class="p">,</span>
+    <span class="nx">minObservations</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">minObservations</span><span class="p">,</span>
+    <span class="nx">chiSquareProbability</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">chiSquareProbability</span><span class="p">,</span>
+    <span class="nx">minNumOfYearsScaler</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">minNumOfYearsScaler</span><span class="p">,</span>
+    <span class="nx">dateFormat</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">dateFormat</span><span class="p">,</span>
+    <span class="nx">lambda</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">lambda</span><span class="p">,</span>
+    <span class="nx">maxIterations</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">maxIterations</span>
   <span class="p">}</span>
 
-<span class="kd">var</span> <span class="nx">results</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">Algorithms</span><span class="p">.</span><span class="nx">TemporalSegmentation</span><span class="p">.</span><span class="nx">Ccdc</span><span class="p">(</span><span class="nx">params</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">results</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">Algorithms</span><span class="p">.</span><span class="nx">TemporalSegmentation</span><span class="p">.</span><span class="nx">Ccdc</span><span class="p">(</span><span class="nx">changeParams</span><span class="p">)</span>
 <span class="nx">print</span><span class="p">(</span><span class="nx">results</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -301,7 +311,7 @@ formatting training data to be used in classification.</p>
         <a href="training.html" class="btn btn-neutral float-right" title="Part 2: Prepare training data" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../lctut.html" class="btn btn-neutral float-left" title="Land cover tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../lctut.html" class="btn btn-neutral float-left" title="Land cover tutorial (API)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -310,11 +320,19 @@ formatting training data to be used in classification.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Eric Bullock, Paulo Arévalo
+        
+        &copy; Copyright 2020, Erick Bullock, Paulo Arevalo
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -325,7 +343,6 @@ formatting training data to be used in classification.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

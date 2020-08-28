@@ -59,6 +59,7 @@ feature. The button is circled in red below:
    :alt: img1
 
    img1
+
 You should see the JSON of the feature appear:
 
 .. figure:: ../img/training2.png
