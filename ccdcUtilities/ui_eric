@@ -1,0 +1,1329 @@
+
+/** ///////////////////////////////////////////////////////////////////
+ * 
+ * Functions to facilitate the creation of user interfaces. Right now
+ * only useful to automate the creation of time series viewers
+ * 
+ ** /////////////////////////////////////////////////////////////////*/
+
+// Global variables 
+var horizontalStyle = {stretch: 'horizontal', width: '100%'}
+
+var miscUtils = require('projects/AREA2/public:utilities/misc') 
+var inputUtils = require('projects/GLANCE:ccdcUtilities/inputs') 
+
+var BANDS = ['NDVI', 'BLUE','GREEN','RED', 'NIR', 'SWIR1', 'SWIR2','NDFI'] 
+var BPBANDS = ['NDVI', 'GREEN', 'RED', 'NIR', 'SWIR1', 'SWIR2']
+var TMBANDS = ['GREEN', 'SWIR2']
+var proj = ee.Projection("EPSG:4326").atScale(30)
+var dateFormat = 1
+var lambda = 20/10000
+var maxIter = 10000
+
+var defaultCcdcParams = {   
+    breakpointBands: BPBANDS,
+    tmaskBands: TMBANDS,
+    dateFormat: dateFormat,
+    lambda: lambda,
+    maxIterations: maxIter
+  }
+  
+var getImageRegion = function(collection, mapObj, geometry, date, vizParams) {
+  var imDate = ee.Date(date)
+  var befDate = imDate.advance(-1, 'day')
+  var aftDate = imDate.advance(1, 'day')
+
+  var selectedImage = collection.filterDate(befDate, aftDate).first()
+  
+  selectedImage.get('system:index').evaluate(function(obj) {
+    var bandList = [vizParams['red'], vizParams['green'], vizParams['blue']]
+    var minList = [vizParams['redMin'], vizParams['greenMin'], vizParams['blueMin']]
+    var maxList = [vizParams['redMax'], vizParams['greenMax'], vizParams['blueMax']]
+    // Safer to add a layer instead of setting it to avoid deleting exiting ones
+    mapObj.addLayer(ee.Image(selectedImage), {bands: bandList, min: minList, max: maxList}, obj);
+  })
+}
+
+function generateCollection(geometry, startDate, endDate, bands) {
+  bands = bands || BANDS
+  var merged_collections = inputUtils.getLandsat()
+  merged_collections = merged_collections
+    .select(bands)
+    .filterBounds(geometry)
+    .filterDate(startDate, endDate)
+  return merged_collections
+}
+
+function ccdcTimeseries(collection, ccdc, geometry, band, padding) {
+  function harmonicFit(t, coef) {
+    var PI2 = 2.0 * Math.PI
+    var OMEGAS = [PI2 / 365.25, PI2, PI2 / (1000 * 60 * 60 * 24 * 365.25)]
+    var omega = OMEGAS[dateFormat];
+    return coef.get([0])
+      .add(coef.get([1]).multiply(t))
+      .add(coef.get([2]).multiply(t.multiply(omega).cos()))
+      .add(coef.get([3]).multiply(t.multiply(omega).sin()))
+      .add(coef.get([4]).multiply(t.multiply(omega * 2).cos()))
+      .add(coef.get([5]).multiply(t.multiply(omega * 2).sin()))
+      .add(coef.get([6]).multiply(t.multiply(omega * 3).cos()))
+      .add(coef.get([7]).multiply(t.multiply(omega * 3).sin()));
+  };
+
+  function convertDateFormat(date, format) {
+    if (format == 0) { 
+      var epoch = 719529;
+      var days = date.difference(ee.Date('1970-01-01'), 'day')
+      return days.add(epoch)
+    } else if (format == 1) {
+      var year = date.get('year')
+      var fYear = date.difference(ee.Date.fromYMD(year, 1, 1), 'year')
+      return year.add(fYear)
+    } else {
+      return date.millis()
+    }
+  }
+
+  function date_to_segment(t, fit) {
+    var tStart = ee.Array(fit.get('tStart'));
+    var tEnd = ee.Array(fit.get('tEnd'));
+    return tStart.lte(t).and(tEnd.gte(t)).toList().indexOf(1);
+  };
+
+  function produceTimeSeries(collection, ccdc, geometry, band) {
+
+    var ccdcFits = ccdc.reduceRegion({
+      reducer: ee.Reducer.first(), 
+      geometry: geometry, 
+      crs: proj
+    })
+    
+    
+    if (padding) {
+      collection = collection.sort('system:time_start')
+
+      var first = collection.first()
+      var last = collection.sort('system:time_start', false).first()
+      var fakeDates = ee.List.sequence(first.date().get('year'), last.date().get('year'), padding).map(function(t) {
+        var fYear = ee.Number(t);
+        var year = fYear.floor()
+        return  ee.Date.fromYMD(year, 1, 1).advance(fYear.subtract(year), 'year')
+      })
+      fakeDates = fakeDates.map(function(d) { 
+        return ee.Image().rename(band).set('system:time_start', ee.Date(d).millis())
+      })
+      collection = collection.merge(fakeDates)
+    }    
+    
+    collection = collection.sort('system:time_start')
+
+    /** Augment images with the model fit. */
+    // I think this is where you can show residuals
+    var timeSeries = collection.map(function(img) {
+      var time = convertDateFormat(img.date(), dateFormat)
+      var segment = date_to_segment(time, ccdcFits)
+      var value = img.select(band).reduceRegion({
+        reducer: ee.Reducer.first(), 
+        geometry: geometry,
+        crs: proj
+      }).getNumber(band)
+      
+      var coef = ee.Algorithms.If(segment.add(1), 
+        ccdcFits.getArray(band + '_coefs')
+          .slice(0, segment, segment.add(1))
+          .project([1]),
+        ee.Array([0,0,0,0,0,0,0,0,0]))
+        
+      var fit = harmonicFit(time, ee.Array(coef))
+      
+      return img.set({
+        value: value,
+        fitTime: time,
+        fit: fit,
+        coef: coef,
+        segment: segment,
+        dateString: img.date().format("YYYY-MM-dd")
+      }).set(segment.format("h%d"), fit)
+    })
+
+    return timeSeries
+  }
+  
+  return produceTimeSeries(collection, ccdc, geometry, band)
+  
+}
+  
+function chartTimeseries(table, band, lat, lon, height, title) {
+  // Everything in here is client-side javascript.
+  function formatAsDataTable(table) {
+    // Try using 10 segments
+    var cols = [{id: 'A', label: 'Date', type: 'date'},
+    {id: 'B', label: 'Raw', type: 'number'},
+    {id: 'C', label: 'fit 1', type: 'number'},
+    {id: 'D', label: 'fit 2', type: 'number'},
+    {id: 'E', label: 'fit 3', type: 'number'},
+    {id: 'F', label: 'fit 4', type: 'number'},
+    {id: 'G', label: 'fit 5', type: 'number'}]
+    // {id: 'H', label: 'fit 6', type: 'number'},
+    // {id: 'I', label: 'fit 7', type: 'number'},
+    // {id: 'J', label: 'fit 8', type: 'number'},
+    // {id: 'K', label: 'fit 9', type: 'number'},
+    // {id: 'L', label: 'fit 10', type: 'number'}];
+    var values = table.map(function(list) {
+      return {c: list.map(function(item, index) {
+          return {"v": index == 0 ? new Date(item) : item }
+        })
+      }
+    })
+    return {cols: cols, rows: values}
+  }
+
+  /** Compute the limits of the given column */
+  function getLimits(table, column) {
+    var col = table.map(function(l) { return l[column]; }).filter(function(i) { return i != null })
+    return [Math.min.apply(Math, col), Math.max.apply(Math, col)]
+  }
+
+  var limits = getLimits(table, 8)
+  var formatted = formatAsDataTable(table)
+  
+  var chart = ui.Chart(formatted, 'LineChart', {
+      title: 'Latitude, Longitude: ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ', ' + title,
+      pointSize: 0,
+      series: {
+        0: { pointSize: 1.8, lineWidth: 0},
+      },
+      vAxis: {
+        title: 'Surface reflectance (' + band + ')',
+        viewWindowMode: 'explicit', //'pretty', 
+        viewWindow: {
+          min: limits[0] * 0.9,
+          max: limits[1] * 1.1
+        }
+      },
+      height: height, //If 100%, chart starts growing if split panel is resized
+      stretch: 'both'
+  })
+  var slider = ui.Slider(0, 10000, 6000, 200, function(obj, widg) {
+    chart.setOptions({
+      vAxis: {
+        title: 'Surface reflectance (' + band + ')',
+        viewWindowMode: 'explicit', //'pretty', 
+        viewWindow: {
+          min: limits[0] * 0.9,
+          max: obj
+        }
+      }
+    })
+  }, 'horizontal')
+
+  var panel = ui.Panel({
+    widgets: [chart,slider],
+    layout: ui.Panel.Layout.flow('vertical'),
+    style: {
+      border: '1px solid black',
+      height: '90%'
+    }
+    
+  })
+  return chart
+}
+
+
+var toolkit = require("users/google/toolkits:landcover/api.js")
+var composite = require("users/google/toolkits:landcover/impl/composites.js").Composites
+
+
+var prepare = function(orbit) {
+  // Load the Sentinel-1 ImageCollection.
+  return ee.ImageCollection('COPERNICUS/S1_GRD')
+    .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VV'))
+    .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VH'))
+    .filter(ee.Filter.eq('instrumentMode', 'IW'))
+    .filter(ee.Filter.eq('orbitProperties_pass', orbit))
+}
+
+
+var generateCollectionS1 = function(geometry, startDate, endDate, mode) {
+  mode = mode || 'ASCENDING'
+  var c = prepare(mode)
+      .filterBounds(Map.getBounds(true))
+      .filterDate('2017-01-01', '2020-01-01')
+      .select('V.')
+      .map(function(img) {
+        var fmean = img.add(30).focal_mean(3)
+        var ratio = fmean.select('VH').divide(fmean.select('VV')).rename('ratio').multiply(30)
+        return img.select().addBands(fmean).addBands(ratio)
+      })
+  return composite.createTemporalComposites(c, ee.Date('2017-01-01'), 3*26, 2, 'week', ee.Reducer.mean())
+}
+
+// function chartCcdc(geometry, band, panel, startDate, endDate, latitude, longitude, mapObj, bands, s1, s2, s1mode) {
+//   s2 = s2 || null
+//   s1mode = s1mode || 'ASCENDING'
+//   // Set up and run CCDC
+  
+//   if (s1) {
+//     var collection = generateCollectionS1(geometry, startDate, endDate, s1mode).select(bands)
+
+//     var ccdc_tile = ee.Algorithms.TemporalSegmentation.Ccdc({
+//       collection: collection,
+//       dateFormat: 1,
+//       lambda: 0.005,
+//       maxIterations: 40000})
+//   } else if (s2) {
+//     var collection = generateCollectionS2()
+//   } else {
+//     var collection = generateCollection(geometry, startDate, endDate, bands).select(bands)
+//     var ccdc_tile = ee.Algorithms.TemporalSegmentation.Ccdc({
+//       collection: collection,
+//       breakpointBands: BPBANDS,
+//       tmaskBands: TMBANDS,
+//       dateFormat: dateFormat,
+//       lambda: lambda,
+//       maxIterations: maxIter
+//     })
+//   }
+//   mapObj.addLayer(ccdc_tile, {}, "ccdc", false)
+
+//   var series = ccdcTimeseries(collection, ccdc_tile, geometry, band, 0.1)
+
+//   // Snap click box to image
+  
+//   var ref_image =ee.Image(collection.first()) 
+//   var proj = ref_image.projection().atScale(30)
+  
+//   var c1 = geometry.transform(proj, 1).coordinates()
+//     .map(function(p) {
+//       return ee.Number(p).floor()
+//     })
+//   var c2 = c1.map(function(p) { return ee.Number(p).add(1) })
+//   var p2 =  ee.Geometry.LineString([c1, c2], proj)
+  
+//   mapObj.addLayer(p2.bounds())
+//   Export.table.toDrive(ee.Feature(p2.bounds()),'point_clicked')
+//   /////////
+  
+//   mapObj.addLayer(series, {}, "series", false)
+//   var table = series
+//     // Try using 10 segments
+//     // .reduceColumns(ee.Reducer.toList(13, 13),
+//     .reduceColumns(ee.Reducer.toList(8, 8),
+//       ["dateString", "value", "h0", "h1", "h2", "h3", "h4", "fit"]).get('list')
+//       // "h5", "h6", "h7", "h8", "h9", "fit"]).get('list')
+
+//   // Use evaluate so we don't lock up the browser.
+//   table.evaluate(function(t, e) {
+//     var chart = chartTimeseries(t, band, latitude, longitude)
+//     // panel.widgets().reset([chart])
+//     panel.widgets().set(0, chart)
+//     chart.onClick(function(x) {
+//       if (x) {
+//         getImageRegion(mapObj, geometry, x)
+//       }
+//     })
+//   })
+// }
+
+function runCcdcUniversal(collection, breakPointBands, tMaskBands, bands, chiSquareProbability, minObservations, dateFormat, lambda, maxIter) {
+  var bands = bands || ['BLUE','GREEN','RED', 'NIR', 'SWIR1', 'SWIR2'] 
+  breakPointBands = breakPointBands || [ 'GREEN', 'RED', 'NIR', 'SWIR1', 'SWIR2']
+  dateFormat = dateFormat || 1
+  lambda = lambda || 20/10000
+  maxIter = maxIter || 10000
+  chiSquareProbability = chiSquareProbability || .99
+  minObservations = minObservations || 6
+  return ee.Algorithms.TemporalSegmentation.Ccdc({
+    collection: collection,
+    breakpointBands: breakPointBands,
+    tmaskBands: tMaskBands,
+    dateFormat: dateFormat,
+    lambda: lambda,
+    maxIterations: maxIter,
+    chiSquareProbability: chiSquareProbability ,
+    minObservations: minObservations 
+  })
+}
+
+// ERIC HERE
+// ccdc tile is the output of ee.Algorithms.TemporalSegmentation.Ccdc
+function chartCcdcUniversal(collection, ccdc_tile, geometry, band, panel, 
+  startDate, endDate, latitude, longitude, mapObj, scale,height,exportPoint, title, vizParams) {
+  exportPoint = exportPoint || false
+  height = height || '30%'
+  scale = scale || 30
+  title = title || 'CCDC Time Series'
+  mapObj.addLayer(ccdc_tile, {}, "ccdc", false)
+  
+  var series = ccdcTimeseries(collection, ccdc_tile, geometry, band, 0.1)
+  
+  // Snap click box to image
+  var ref_image =ee.Image(collection.first()) 
+  var proj = ref_image.select(0).projection().atScale(scale)
+  var c1 = geometry.transform(proj, 1).coordinates()
+    .map(function(p) {
+      return ee.Number(p).floor()
+    })
+  var c2 = c1.map(function(p) { return ee.Number(p).add(1) })
+  var p2 =  ee.Geometry.LineString([c1, c2], proj)
+  
+  mapObj.addLayer(p2.bounds())
+  if (exportPoint) {
+    Export.table.toDrive(ee.Feature(p2.bounds()),'point_clicked')
+  }
+
+  mapObj.addLayer(series, {}, "series", false)
+  var table = series
+    .reduceColumns(ee.Reducer.toList(8, 8),
+      ["dateString", "value", "h0", "h1", "h2", "h3", "h4", "fit"]).get('list')
+      
+  // Use evaluate so we don't lock up the browser.
+  table.evaluate(function(t, e) {
+    var chart = chartTimeseries(t, band, latitude, longitude, height, title)
+    panel.clear()
+    panel.add(chart)
+    chart.widgets().get(0).onClick(function(x) {
+      if (x) {
+        getImageRegion(collection, mapObj, geometry, x, vizParams)
+      }
+    })
+  })
+}
+
+
+
+
+function initializeTSViewer(mapObj, ccdcParams) {
+  var s1 = ccdcParams && ccdcParams.s1 || false
+  ccdcParams = ccdcParams || {bands: BANDS}
+  var startDate = ccdcParams && ccdcParams.startDate || '1990-01-01'
+  var endDate = ccdcParams && ccdcParams.endDate || '2020-01-01'
+  var s1mode = ccdcParams && ccdcParams.s1mode || 'ASCENDING'
+  var locationButton = ui.Button({
+  label:'User location',
+  style:{stretch: 'horizontal', backgroundColor: 'rgba(255, 255, 255, 0.0)'}
+  })
+  
+  locationButton.onClick(function() {
+  var geoSuccess = function(position) {
+    var lat = position.coords.latitude;
+    var lon = position.coords.longitude;
+    if (navigator.geolocation) {
+      var point = ee.Geometry.Point([lon, lat])
+      mapObj.centerObject(point)
+      mapObj.addLayer(point, {color:'#0099ff'}, "Current location")
+    }
+    else {
+      console.log('Geolocation is not supported for this Browser/OS.');
+    }
+  };
+  navigator.geolocation.getCurrentPosition(geoSuccess);
+
+  });
+  
+  var waitMsg = ui.Label({
+    value: 'Processing, please wait',
+    style: {
+      position: 'bottom-left',
+      stretch: 'horizontal',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      backgroundColor: 'rgba(255, 255, 255, 0.0)'
+    }
+  });
+  
+  var sDate = ui.Textbox({
+    placeholder: "Start date in 'yyyy-mm-dd' format",
+    value: '1997-01-01',
+    style:{stretch: 'horizontal', backgroundColor: 'rgba(255, 255, 255, 0.0)'}
+  })
+
+  var eDate = ui.Textbox({
+    placeholder: "End date in 'yyyy-mm-dd' format",
+    value: '2020-01-01',
+    style:{stretch: 'horizontal', backgroundColor: 'rgba(255, 255, 255, 0.0)'}
+  })
+  
+  var chartPanel = ui.Panel({
+  style: {
+    height: '30%',
+    width: '100%',
+    position: 'bottom-center',
+    padding: '0px',
+    margin: '0px',
+    border: '0px',
+    // whiteSpace:'nowrap',
+    stretch: 'both',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)'
+    } 
+  });
+  
+  
+  var bandSelect = ui.Select({items:ccdcParams.bands, value:ccdcParams.bands[0], 
+    style:{stretch: 'horizontal', backgroundColor: 'rgba(255, 255, 255, 0.0)'
+  }});
+  
+  // Map callback function, set the first time and after map is cleared
+  var mapCallback = function(coords) {
+    if(dirtyMap === false){
+      //mapObj.widgets().set(1, chartPanel)
+      dirtyMap = true;
+    }
+    chartPanel.clear();
+    chartPanel.add(waitMsg);
+    
+    var geometry = ee.Geometry.Point([coords.lon, coords.lat]);
+    // Run ccdc and get time series
+    chartCcdcUniversal(geometry, bandSelect.getValue(), chartPanel, 
+              startDate, endDate, 
+              coords.lon, coords.lat, mapObj, ccdcParams.bands, s1, null, s1mode)
+  }
+
+  var clearMap = ui.Button({label: 'Clear map', 
+                            onClick:function(){
+                                      mapObj.clear()
+                                      mapObj.widgets().set(0, controlPanel);
+                                      // Need to restablish callback after map.clear
+                                      dirtyMap = false
+                                      mapObj.setControlVisibility({zoomControl:false, layerList:true})
+                                      mapObj.onClick(mapCallback)
+                            },
+                            style:{stretch: 'horizontal'}
+  })
+  
+  // Floating widget with map controls
+  var controlPanel = ui.Panel({
+    widgets: [bandSelect, clearMap],
+    style: {
+      height: '140px',
+      width: '120px',
+      position: 'top-left',
+      backgroundColor: 'rgba(255, 255, 255, 0)'
+      
+    }
+  });
+  
+  // Set initial map options
+  var dirtyMap = false
+  mapObj.onClick(mapCallback) 
+  mapObj.setOptions('SATELLITE');
+  mapObj.widgets().set(0, controlPanel);
+  mapObj.setControlVisibility({zoomControl:false, layerList:true})
+  mapObj.style().set({cursor:'crosshair'});
+  return ui.SplitPanel(mapObj, chartPanel, 'vertical')
+  
+}
+
+
+/**
+* Automate the creation of a horizontal panel with label and selector
+* @param {String}        name        Name of label to use
+* @parame {List}         items       List with items to use in the selector
+* @returns {ee.Panel}                Horizontal panel with label and selector with given items
+**/
+
+function generateSelectorPanel(name, items){
+  var selectorPanel = ui.Panel(
+    [
+      ui.Label({value: name, style:{stretch: 'horizontal', color:'black'}}),
+      ui.Select({items: items, style:{stretch: 'horizontal'}}) 
+    ],
+    ui.Panel.Layout.Flow('horizontal'),
+    horizontalStyle
+  )
+  return selectorPanel
+}
+
+/**
+* Automate the creation of a vertical colorbar legend
+* @param {String}        min        Lower colorbar value 
+* @param {String}        max        Higher colorbar value 
+* @parame {List}         palette    List of colors
+* @returns {ee.Panel}               ee.Panel with thumbnail colorbar
+**/
+
+function generateColorbarLegend(min, max, palette, orientation, title){
+  var viz = {min:min, max:max, palette:palette};
+   
+  if (orientation == 'vertical'){
+     
+    var layout = ui.Panel.Layout.flow('vertical', false)
+    var coordinate = 'latitude'
+    var params = {bbox:'0,0,10,100', dimensions:'10x200'}
+    var width = '50px'
+     
+  } else if (orientation == 'horizontal'){
+     
+    var layout = ui.Panel.Layout.flow('horizontal', false)
+    var coordinate = 'longitude'
+    var params = {bbox:'0,0,100,10', dimensions:'200x10'}
+    var width = '330px'
+    var labwidth = '40px'
+     
+  } else {
+     
+    print("Orientation must be 'vertical' or 'horizontal'")
+     
+  }
+   
+    // set position of panel
+    var legend = ui.Panel({
+      style: {
+        position: 'middle-left',
+      },
+      layout: layout
+    });
+     
+    // create the legend image
+    var lon = ee.Image.pixelLonLat().select(coordinate)
+    var gradient = lon.multiply((viz.max-viz.min)/100.0).add(viz.min);
+    var legendImage = gradient.visualize(viz);
+     
+    // create text for max value
+    var maxPanel = ui.Panel({
+      widgets: [
+        ui.Label(viz['max'])
+      ],
+      style: {width: labwidth}
+    })
+
+    // create thumbnail from the image
+    var thumbnail = ui.Thumbnail({
+      image: legendImage,
+      params: params,
+      style: {padding: '1px', position: 'bottom-center'}
+    });
+
+    // create text for min value
+    var minPanel = ui.Panel({
+      widgets: [
+        ui.Label(viz['min'])
+      ],
+      style: {width: labwidth}
+    });
+     
+    // Organize panel and return
+    if (orientation == 'vertical'){
+      
+      legend.add(maxPanel)
+      legend.add(thumbnail)
+      return legend.add(minPanel)
+      
+    } else if (orientation == 'horizontal'){
+      
+      legend.add(minPanel)
+      legend.add(thumbnail)
+      var outpanel = legend.add(maxPanel)
+      
+      return ui.Panel({widgets: [
+        ui.Label({
+          value: title,
+          style: {
+            padding: '1px', 
+            position: 'top-center',
+            
+          }
+        }),
+        outpanel
+        ], 
+        style: {
+          position: 'middle-left',
+          width: width
+        }})
+    }  
+}
+
+
+var makeTextPanel = function(label, value, stretch) {
+  return ui.Panel(
+  [
+    ui.Label({value:label, style:{stretch: stretch, color:'black'}}),
+    ui.Textbox({value:value, style:{stretch: stretch}}),
+
+  ],
+  ui.Panel.Layout.Flow(stretch),
+  horizontalStyle
+);
+}
+
+var arrayRemove = function(arr, value) {
+  return arr.filter(function(ele){
+      return ele != value;
+  });
+}
+
+var makeCheckbox = function(label, inputs) {
+  return ui.Checkbox({
+    label: label, 
+    value: true,
+    onChange: function(b) {
+      if (!b) {
+        inputs = arrayRemove(inputs, label)
+      } else {
+        inputs.push(b)
+      }
+    }  
+  })
+}
+
+var makePanel = function(stretch, widgets) {
+return ui.Panel(
+    widgets,
+    ui.Panel.Layout.Flow(stretch)); 
+}
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////
+//
+//                    Classification App
+//
+////////////////////////////////////////////////////////////////////////
+
+
+//............. TRAINING SAMPLING ................//
+
+/**
+* Choose method for subsetting training data. Currently,
+* there is support for:
+* 
+* 1. Using all the training data
+* 2. Using only the data within a random selection of grid points
+* 3. Using all the training data with a subset of the full data
+* 
+*/
+var training = function(theMap, visLabels) {
+  var self = this
+  this.widgs = {}
+  // this.outGeo = outGeo
+
+  this.trainingOptions = ['Use All','Within Output Extent']
+  this.trainingStrategy = 'Use All'
+  
+  this.widgs.panels = uiUtils.makePanel('vertical',
+    [
+      uiUtils.makeTextPanel('Training Data','projects/GLANCE/TRAINING/LCMAP_stable_segments_measures_training_coefs_remapped','horizontal'),
+      uiUtils.makeTextPanel('Attribute','LC_Num', 'horizontal')
+    ]
+  )
+  
+  /**
+  * List of functions for the selector widget
+  */
+  this.funcs = [
+    this.useAllTraining, 
+    this.useRegionTraining,
+  ]
+  
+  this.widgs.dropdown = uiUtils.makePanel('horizontal',
+    [
+      ui.Label('Define training data strategy'),
+      ui.Select({
+        items: self.trainingOptions,
+        onChange: function(i) {
+          self.trainingStrategy = i
+          self.fc = ee.FeatureCollection(
+            self.widgs.panels.widgets().get(0).widgets().get(1).getValue())
+        }
+      })
+    ])
+  
+  this.widgs.all = uiUtils.makePanel('vertical',
+    [
+      ui.Label('Training data procedure',visLabels),
+      self.widgs.dropdown,
+      self.widgs.panels
+    ]
+  )
+}
+
+
+
+//............. STUDY AREA ................//
+
+/**
+* Draw a box on the map
+* 
+* Written by Justin Braaten (I think): https://emapr.github.io/LT-GEE/
+* https://code.earthengine.google.com/82b08b69bd596ada4747cb4bb7ea9526
+* 
+* This function allows you to click on the map and after 5 clicks, the
+* locations and joined, making a Polygon. This polygon can be used as the
+* geographic extent of the analysis. 
+*/ 
+var DrawAreaTool = function(map) {
+  var drawingToolLayer = ui.Map.Layer({name: 'Area Selection Tool', visParams: {palette:'#4A8BF4', color:'#4A8BF4' }});
+
+  this.map = map;
+  this.selection = null;
+  this.active = false;
+  this.points = [];
+  this.area = null;
+  
+  this.listeners = [];
+
+  var tool = this;
+  
+  this.initialize = function() {
+    this.map.onClick(this.onMouseClick);
+    map.layers().reset()
+    map.layers().set(0, drawingToolLayer);
+  };
+  
+  this.startDrawing = function() {
+    this.active = true;
+    this.points = [];
+
+    this.map.style().set('cursor', 'crosshair');
+    drawingToolLayer.setShown(true);
+  };
+  
+  this.stopDrawing = function() {
+    tool.active = false;
+    tool.map.style().set('cursor', 'hand');
+
+    if(tool.points.length < 2) {
+      return;
+    }
+
+    var closedPoints = tool.points.slice(0,-1);
+    tool.area = ee.Geometry.Polygon(closedPoints)///.bounds();
+    
+    var empty = ee.Image().byte();
+    var test = empty.paint({
+      featureCollection: ee.FeatureCollection(tool.area),
+      color: 1,
+      width: 4
+    });
+  
+    drawingToolLayer.setEeObject(test);
+
+    tool.listeners.map(function(listener) {
+      listener(tool.area);
+    });
+  };
+  
+  this.onMouseClick = function(coords) {
+    if(!tool.active) {
+      return;
+    }
+    
+    tool.points.push([coords.lon, coords.lat]);
+
+    var geom = tool.points.length > 1 ? ee.Geometry.LineString(tool.points) : ee.Geometry.Point(tool.points[0]);
+    drawingToolLayer.setEeObject(geom);
+
+    if(tool.points.length > 4) {
+      tool.stopDrawing();
+    }
+  };
+  
+  this.onFinished = function(listener) {
+    tool.listeners.push(listener);
+  };
+  
+  this.initialize();
+};
+
+var region = function(theMap, grids,regions, visLabels) {
+  var self = this
+  this.widgs = {}
+  this.widgs.geoPanel = ui.Panel()
+  this.regions = regions
+  this.theMap = theMap
+  this.regionTypes = ['Select Method','Draw on Map','Single Tile','Tile Intersecting Point','Multiple Tiles','Draw Multiple Tiles on Map']
+
+  
+  this.widgs.singleTilePanel = uiUtils.makePanel('horizontal',
+    [
+      ui.Label({value:'Vertical #:', style:{color:'red'}}),
+      ui.Textbox({value:32, style:{stretch: 'horizontal'}}),
+      ui.Label({value:'Horizontal #:', style:{color:'red'}}),
+      ui.Textbox({value:61, style:{stretch: 'horizontal'}}) ,
+      ui.Label({value:'Region', style:{color:'red'}}),
+      ui.Select({items:self.regions,value: self.regions[5], style:{stretch: 'horizontal'}}) 
+    ]
+  )
+  
+  
+  this.widgs.multiplePanelStart = uiUtils.makePanel('horizontal',
+    [
+      ui.Label({value:'Vertical # Min:', style:{color:'red'}}),
+      ui.Textbox({value:30, style:{stretch: 'horizontal'}}),
+      ui.Label({value:'Horizontal # Min:', style:{color:'red'}}),
+      ui.Textbox({value:60, style:{stretch: 'horizontal'}}),
+      ui.Label({value:'Region', style:{color:'red'}}),
+      ui.Select({items:self.regions,value: self.regions[0], style:{stretch: 'horizontal'}}) 
+    ]
+  )
+  
+  
+  this.widgs.multiplePanelEnd = uiUtils.makePanel('vertical',
+    [
+      ui.Label({value:'Vertical # Max:', style:{color:'red'}}),
+      ui.Textbox({value:35, style:{stretch: 'horizontal'}}),
+      ui.Label({value:'Horizontal # End:', style:{color:'red'}}),
+      ui.Textbox({value:65, style:{stretch: 'horizontal'}}),
+    ]
+  )
+  
+  /**
+  * Helper function for drawing output extent. 
+  * 
+  * This function faciliates the drawing of the output extent using the
+  * DrawAreaTool() function. 
+  */ 
+  this.doAreaTool = function() {
+    self.widgs.geoPanel.add(ui.Label('Slowly click five points on the map and the application will generate a rectangle for the output extent geometry.'))
+    var tool = new DrawAreaTool(self.theMap);
+    tool.startDrawing();
+    tool.onFinished(function(geometry) {
+      self.outGeo = ee.Feature(geometry);
+    });
+    
+  }
+  
+  /**
+  * Helper function for drawing output extent and finding overlapping tiles
+  * 
+  * This function faciliates the drawing of the output extent using the
+  * DrawAreaTool() function. 
+  */ 
+  this.drawMultipleTiles = function() {
+    self.widgs.geoPanel.add(ui.Label('Slowly click five points on the map and the application will generate a rectangle for the output extent geometry.'))
+    var tool = new DrawAreaTool(self.theMap);
+    tool.startDrawing();
+    tool.onFinished(function(geometry) {
+      var tempGeo = grids.filterBounds(geometry);
+  
+      tempGeo.size().evaluate(function(val) {
+        if (val > 0) {
+          self.outGeos = ee.FeatureCollection(tempGeo)
+          theMap.addLayer(self.outGeos, {},'Output Geometry')
+          theMap.centerObject(self.outGeos)
+          self.outGeosSize = val
+        } else {
+          print('No overlapping tiles found!')
+        }
+      })
+    })
+    
+  }
+  
+  /**
+  * Specify a single tile. 
+  * 
+  * This function filters the GLANCE global grid based on the users
+  * input properties in the GUI. 
+  */ 
+  this.doSingleTile = function() {
+    self.widgs.geoPanel.add(self.widgs.singleTilePanel)
+  
+    var tempGeo
+    var validateTile = ui.Button('Load Tile', function(){
+      h = Number(self.widgs.singleTilePanel.widgets().get(3).getValue())
+      v = Number(self.widgs.singleTilePanel.widgets().get(1).getValue())
+      r = String(self.widgs.singleTilePanel.widgets().get(5).getValue())
+      tempGeo = grids.filterMetadata('horizontal','equals',h)
+        .filterMetadata('vertical','equals',v)
+        .filterMetadata('zone','equals',r)
+  
+      tempGeo.size().evaluate(function(val) { 
+        if (val > 0) {
+          self.outGeo = ee.Feature(tempGeo.first())
+          theMap.addLayer(self.outGeo, {},'Output Geometry')
+          theMap.centerObject(self.outGeo)
+        }
+        else {
+          print('No Tile Found!')
+        }
+      })
+    })
+    self.widgs.geoPanel.add(validateTile)
+  }
+  
+  /**
+  * Find a single tile by clicking on the map. 
+  * 
+  * This function filters the GLANCE global grid based on the intersection of
+  * a point clicked on the map. 
+  */ 
+  this.doPoint = function() {
+    self.hasClicked = false
+    theMap.style().set('cursor', 'crosshair');
+    self.widgs.geoPanel.add(ui.Label('Click a location on the map to load the intersecting tile'))
+    theMap.onClick(function(coords) {
+      theMap.layers().reset()
+      var latitude = coords.lat
+      var longitude = coords.lon
+      var point = ee.Geometry.Point([longitude, latitude])
+      var tempGeo = grids.filterBounds(point)
+      
+      theMap.layers().set(0, point)
+      tempGeo.size().evaluate(function(val) { 
+        if (val > 0) {
+          self.outGeo = ee.Feature(tempGeo.first())
+          theMap.addLayer(self.outGeo, {},'Output Geometry')
+          theMap.centerObject(self.outGeo)
+        }
+    })
+    theMap.unlisten()
+    })
+  }
+  
+  /**
+  * Specify a range of tiles. 
+  * 
+  * This function filters the GLANCE global grid based on a range of
+  * the users input properties in the GUI. 
+  */ 
+  this.doMultipleTiles = function() {
+    
+    self.widgs.geoPanel.add(self.widgs.multiplePanelStart)
+    self.widgs.geoPanel.add(self.widgs.multiplePanelEnd)
+  
+    var tempGeo
+    var validateTile = ui.Button('Load Tiles', function(){
+      var h1 = Number(self.widgs.multiplePanelStart.widgets().get(3).getValue())
+      var v1 = Number(self.widgs.multiplePanelStart.widgets().get(1).getValue())
+      
+      var h2 = Number(self.widgs.multiplePanelEnd.widgets().get(3).getValue())
+      var v2 = Number(self.widgs.multiplePanelEnd.widgets().get(1).getValue())
+  
+      var r = String(self.widgs.multiplePanelStart.widgets().get(5).getValue())
+      tempGeo = grids.filterMetadata('horizontal','greater_than',h1)
+        .filterMetadata('horizontal','less_than',h2)
+        .filterMetadata('vertical','greater_than',v1)
+        .filterMetadata('vertical','less_than',v2)
+        .filterMetadata('zone','equals',r)
+  
+      tempGeo.size().evaluate(function(val) {
+        if (val > 0) {
+          self.outGeo = ee.FeatureCollection(tempGeo)
+          theMap.addLayer(self.outGeo, {},'Output Geometry')
+          theMap.centerObject(self.outGeo)
+          self.outGeosSize = val
+        } else if (val === 0) {
+          print('No Tile Found!')
+        }
+      })
+    })
+    self.widgs.geoPanel.add(validateTile)
+  }
+  
+  this.widgs.selectRegion = uiUtils.makePanel('horizontal',
+    [
+      ui.Label({value:'Define Study Region:', style:{color:'black'}}),
+      ui.Select({
+        value: 'Select Method',
+        items: self.regionTypes,
+        onChange: function(reg) {
+          self.widgs.geoPanel.clear()
+          Map.unlisten()
+          theMap.layers().reset()
+          var index = self.regionTypes.indexOf(reg) - 1
+          self.geoType = index
+          
+          var regionFuncs = [
+            self.doAreaTool, 
+            self.doSingleTile, 
+            self.doPoint, 
+            self.doMultipleTiles, 
+            self.drawMultipleTiles
+          ]
+          var regionFunc = regionFuncs[index]
+          regionFunc(reg)
+        }
+      })
+    ]
+  );
+
+  this.widgs.all = uiUtils.makePanel('vertical',
+    [
+      ui.Label('Define Output Region',visLabels),
+      this.widgs.selectRegion,
+      self.widgs.geoPanel
+    ]
+  )
+}
+
+/**
+* Classifier parameters
+*/
+var classifier = function(classifierList, eeClassifiers, visLabels) {
+  var self = this
+  this.widgs = {}
+  this.classifierList = classifierList
+  this.eeClassifiers = eeClassifiers
+  this.visLabels = visLabels
+  this.widgs.classifierParams = uiUtils.makePanel('vertical', [])
+
+  this.randomForestOptions = function() {
+    self.widgs.classifierParams.add(uiUtils.makeTextPanel('numTrees',200,'horizontal'))
+    self.widgs.classifierParams.add(uiUtils.makeTextPanel('variablesPerSplit',null, 'horizontal'))
+  }
+    
+  this.changeClassifier = function(i) {
+    var index = self.classifierList.indexOf(i)
+    self.classifier = self.eeClassifiers[index]
+    self.widgs.classifierParams.clear()
+    if (i == 'RandomForest') {
+      self.randomForestOptions()
+    }
+  }
+  
+  this.dateList = '2001-01-01'
+  this.widgs.dateBox = uiUtils.makeTextPanel('Date',self.dateList,'horizontal')
+  this.widgs.dateBox.widgets().get(1).onChange(function(str) {
+    self.dateList = str
+  })
+
+  this.widgs.classifierSelector = ui.Panel(
+    [
+      ui.Label({value:'Classifier', style:{stretch: 'horizontal', color:'black'}}),
+      ui.Select({
+        items: self.classifierList, 
+        onChange: self.changeClassifier,
+        style:{stretch: 'horizontal',
+        }}),
+  
+    ],
+    ui.Panel.Layout.Flow('horizontal')
+  );
+  
+  this.widgs.all = uiUtils.makePanel('vertical',
+    [
+      ui.Label('Classification Parameters',self.visLabels),
+      self.widgs.dateBox,  
+      self.widgs.classifierSelector,
+      self.widgs.classifierParams
+    ]
+  )
+}
+
+// PREDICTORS 
+var predictors = function(visLabels, coefs, props) {
+  var self = this
+  this.widgs = []
+  this.widgs.bandChecks = uiUtils.makePanel('vertical', [])
+  this.widgs.coefChecks = uiUtils.makePanel('vertical', [])
+
+    
+  this.widgs.inputCheckboxes = []
+  this.inputBands = []
+  this.inputCoefs = []
+  this.ancillary = []
+  
+  this.fillInputPanels = function(i) {
+    self.bands = i
+    
+    for (var b = 0; b < i.length; b++) {
+      var newCheck = uiUtils.makeCheckbox(i[b], self.inputBands)
+      self.widgs.inputCheckboxes.push(newCheck)
+      self.widgs.bandChecks.add(newCheck)
+      self.inputBands.push(i[b])
+    }
+
+    for (var c = 0; c < coefs.length; c++) {
+      var newCheck = uiUtils.makeCheckbox(coefs[c], self.inputCoefs)
+      self.widgs.inputCheckboxes.push(newCheck)
+      self.widgs.coefChecks.add(newCheck)
+      self.inputCoefs.push(coefs[c])
+    }
+  }
+  this.ancillary.push('ELEVATION')
+  this.ancillary.push('ASPECT')
+  this.ancillary.push('SLOPE')
+  
+  this.widgs.elevation = uiUtils.makePanel('vertical', 
+    [
+      uiUtils.makePanel('horizontal',
+        [
+          uiUtils.makeCheckbox('ELEVATION', self.ancillary), 
+          uiUtils.makeCheckbox('ASPECT', self.ancillary)
+        ]
+      ),
+      uiUtils.makePanel('horizontal',
+        [
+          uiUtils.makeCheckbox('SLOPE', self.ancillary)
+        ]),
+    ]
+  )
+  
+  this.widgs.climate = uiUtils.makePanel('vertical', 
+    [
+      uiUtils.makePanel('horizontal',
+        [
+          uiUtils.makeCheckbox('RAINFALL', self.ancillary), 
+          uiUtils.makeCheckbox('TEMPERATURE', self.ancillary)
+        ]
+      )
+    ]
+  )
+  
+
+  this.widgs.checks = uiUtils.makePanel(
+    'horizontal', 
+    [self.widgs.bandChecks, self.widgs.coefChecks])
+  this.widgs.all = uiUtils.makePanel('vertical', 
+    [
+      ui.Label('Predictor Variables',visLabels),
+      ui.Label('CCDC Model Parameters'),
+      self.widgs.checks,
+      ui.Label({value:'Elevation inputs: ', style: {stretch: 'both'}}),
+      self.widgs.elevation,
+      ui.Label({value:'Climate inputs: ', style: {stretch: 'both'}}),
+      self.widgs.climate
+    ]
+  )
+}
+
+
+/**
+* Create standalone chart with time series and CCDC segments
+* @param {ee.Map} mapObj An ee.Map() instance
+* @param {dict} runParams Dictionary with arguments to filter collection
+* @param {dict} ccdParams Dictionary with argument to pass to the CCD algorithm
+* @returns {ee.Chart} ee.Chart linked to the input map
+*/
+function getTSChartS1(mapObj, ccdParams, runParams, vizParams, prepParams) {
+  var waitMsg = ui.Label({
+    value: 'Processing, please wait',
+    style: {
+      position: 'bottom-left',
+      stretch: 'horizontal',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      backgroundColor: 'rgba(255, 255, 255, 0.0)'
+    }
+  });
+  
+  var chartPanel = ui.Panel({
+  style: {
+    height: '30%',
+    width: '100%',
+    position: 'bottom-center',
+    padding: '0px',
+    margin: '0px',
+    border: '0px',
+    // whiteSpace:'nowrap',
+    stretch: 'both',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)'
+    } 
+  });
+  
+  // Map callback function, set the first time and after map is cleared
+  var mapCallback = function(coords) {
+    if(dirtyMap === false){
+      //mapObj.widgets().set(1, chartPanel)
+      dirtyMap = true;
+    }
+    chartPanel.clear();
+    chartPanel.add(waitMsg);
+    
+    var geometry = ee.Geometry.Point([coords.lon, coords.lat]);
+
+    
+    var s1 = inputUtils.getS1(prepParams.modeSize, prepParams.kernel).filterBounds(geometry)
+    var passCount = ee.Dictionary(s1.aggregate_histogram('orbitProperties_pass'))
+
+    var passValues = passCount.values().sort().reverse()
+    var higherCount = passValues.get(0)
+    var orbitPass = passCount.keys().get(passCount.values().indexOf(higherCount))
+    s1 = s1.filter(ee.Filter.eq('orbitProperties_pass', orbitPass))  
+    var s1Tile = runCcdcUniversal(s1, ccdParams.breakpointBands, ccdParams.tmaskBands,
+      ccdParams.bands, ccdParams.chiSquareProbability, ccdParams.minObservations, 
+      ccdParams.dateFormat, ccdParams.lambda, ccdParams.maxIter)
+
+    chartCcdcUniversal(s1, s1Tile, geometry, runParams.bandSelect, chartPanel, 
+      runParams.sDate, runParams.eDate, coords.lat, coords.lon, mapObj, 30, 
+      '80%',false, 'S1', vizParams)          
+  }
+
+  // Set initial map options and link map and chart
+  var dirtyMap = false
+  mapObj.onClick(mapCallback) 
+  
+  return chartPanel
+  
+}
+
+/**
+* Create standalone chart with time series and CCDC segments
+* @param {ee.Map} mapObj An ee.Map() instance
+* @param {dict} runParams Dictionary with arguments to filter collection
+* @param {dict} ccdParams Dictionary with argument to pass to the CCD algorithm
+* @returns {ee.Chart} ee.Chart linked to the input map
+*/
+function getTSChartLandsat(mapObj, ccdParams, runParams, vizParams, prepParams) {
+  var waitMsg = ui.Label({
+    value: 'Processing, please wait',
+    style: {
+      position: 'bottom-left',
+      stretch: 'horizontal',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      backgroundColor: 'rgba(255, 255, 255, 0.0)'
+    }
+  });
+  
+  var chartPanel = ui.Panel({
+  style: {
+    height: '30%',
+    width: '100%',
+    position: 'bottom-center',
+    padding: '0px',
+    margin: '0px',
+    border: '0px',
+    stretch: 'both',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)'
+    } 
+  });
+  
+  // Map callback function, set the first time and after map is cleared
+  var mapCallback = function(coords) {
+    if(dirtyMap === false){
+      dirtyMap = true;
+    }
+    chartPanel.clear();
+    chartPanel.add(waitMsg);
+    
+    var geometry = ee.Geometry.Point([coords.lon, coords.lat]);
+    var col = ccdParams.collection.filterBounds(geometry)
+    var tile = runCcdcUniversal(col, ccdParams.breakpointBands, ccdParams.tmaskBands,
+      ccdParams.bands, ccdParams.chiSquareProbability, ccdParams.minObservations, 
+      ccdParams.dateFormat, ccdParams.lambda, ccdParams.maxIter)
+
+    chartCcdcUniversal(col, tile, geometry, runParams.bandSelect, chartPanel, 
+      runParams.sDate, runParams.eDate, coords.lat, coords.lon, mapObj, 30, 
+      '80%',false, 'Landsat', vizParams)          
+  }
+
+  // Set initial map options and link map and chart
+  var dirtyMap = false
+  mapObj.onClick(mapCallback) 
+  
+  return chartPanel
+  
+}
+
+
+exports = {
+  getTSChartLandsat: getTSChartLandsat,
+  initializeTSViewer: initializeTSViewer,
+  generateSelectorPanel: generateSelectorPanel,
+  generateColorbarLegend: generateColorbarLegend,
+  makePanel: makePanel,
+  makeCheckbox: makeCheckbox,
+  makeTextPanel: makeTextPanel,
+  arrayRemove: arrayRemove,
+  generateCollection: generateCollection,
+  ccdcTimeseries: ccdcTimeseries,
+  runCcdcUniversal: runCcdcUniversal,
+  chartCcdcUniversal: chartCcdcUniversal,
+  getTSChartS1: getTSChartS1
+}
+
+
+

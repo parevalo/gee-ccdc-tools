@@ -1,0 +1,545 @@
+
+/** ///////////////////////////////////////////////////////////////////
+ * 
+ * Utility functions for getting inputs for CCDC
+ * 
+ * Status: 10/27/2019
+*   -Improvement (low priority) Should probably use bit unpacking
+*   -Improvement (lowpriority) Should be option for masking water and/or ice
+ * 
+ ** /////////////////////////////////////////////////////////////////*/
+ 
+var dateUtils = require('projects/GLANCE:ccdcUtilities/dates')
+ 
+/**
+* Make cloud mask for Landsat 4,5, and 7
+* 
+* @param {ee.Image}        img         Landsat image with pixel_qa band
+* 
+* @returns {ee.Image}                  Landsat image with clouds and shadows masked
+*/
+var mask457 = function(img) {
+  var mask = img.select(['pixel_qa']).eq(66)
+              .or(img.select(['pixel_qa']).eq(68))
+              .and(img.select('B1').gt(ee.Image(0)))
+  return img.updateMask(mask)
+    .select(['B1', 'B2','B3','B4','B5','B7'])
+    .rename(['BLUE','GREEN','RED','NIR','SWIR1','SWIR2'])
+} 
+
+/**
+* Make cloud mask for Landsat 8 
+* 
+* Status: 10/27/2019
+*   -Improvement (low priority) Should probably use bit unpacking
+*   -Improvement (lowpriority) Should be option for masking water and/or ice
+* 
+* @param {ee.Image}        img         Landsat image with pixel_qa band
+* 
+* @returns {ee.Image}                  Landsat image with clouds and shadows masked
+*/
+var mask8 = function(img) {
+  var mask = img.select(['pixel_qa']).eq(322)
+               .or(img.select(['pixel_qa']).eq(324))
+               .and(img.select('B1').gt(ee.Image(0)))
+               
+  return ee.Image(img).updateMask(mask)
+    .select(['B2', 'B3','B4','B5','B6','B7'])
+    .rename(['BLUE','GREEN','RED','NIR','SWIR1','SWIR2'])
+};
+
+
+/**
+* Get Landsat images for a specific region
+* 
+* Status: 10/27/2019
+*   -Improvement (high priortity): specify date format
+*   -Question: What is the use mask option for? 
+* 
+* @param {ee.Dict}        options         Parameter file containing the keys below
+*   @key {String}         start           First date to filter images
+*   @key {String}         end             Last date to filter images
+*   @key {list}           targetBands     Bands and indices to return
+* 
+* Possible bands and indices: BLUE, GREEN, RED, NIR, SWIR1, SWIR2, NDVI, NBR, EVI, EVI2, 
+*                             BRIGHTNESS, GREENNESS, WETNESS
+* 
+* @returns                ee.ImageCol.    Masked image collection with L4, L5, L7, and L8
+*/
+var getLandsat = function(options) {
+  var start = (options && options.start) || '1990-01-01'
+  var end = (options && options.end) || '2020-01-01'
+  var startDoy = (options && options.startDOY) || 1
+  var endDoy = (options && options.endDOY) || 366
+  var region = (options && options.region) || null
+  var targetBands = (options && options.targetBands) || ['BLUE','GREEN','RED','NIR','SWIR1','SWIR2']
+  var useMask = (options && options.useMask) || true
+  var sensors = (options && options.sensors) || {l4: true, l5: true, l7: true, l8: true}
+  if (useMask == 'No') {
+    useMask = false
+  }
+
+  var collection4 = ee.ImageCollection('LANDSAT/LT04/C01/T1_SR')
+      .filterDate(start, end)
+  var collection5 = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR')
+      .filterDate(start, end)
+  var collection7 = ee.ImageCollection('LANDSAT/LE07/C01/T1_SR')
+      .filterDate(start, end)
+  var collection8 = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR')
+      .filterDate(start, end)
+
+  var collection4 = collection4.map(mask457)
+  var collection5 = collection5.map(mask457)
+  var collection7 = collection7.map(mask457)
+  var collection8 = collection8.map(mask8)
+  var col = collection4.merge(collection5)
+                        .merge(collection7)
+                        .merge(collection8)
+  if (region) {
+    col = col.filterBounds(region)
+  }
+  
+  var indices = doIndices({collection: col}).select(targetBands)
+  
+  if (!sensors.l5) {
+    indices = indices.filterMetadata('SATELLITE','not_equals','LANDSAT_5')
+  } 
+  if (!sensors.l4) {
+    indices = indices.filterMetadata('SATELLITE','not_equals','LANDSAT_4')
+  }
+  if (!sensors.l7) {
+    indices = indices.filterMetadata('SATELLITE','not_equals','LANDSAT_7')
+  }
+  if (!sensors.l8) {
+    indices = indices.filterMetadata('SATELLITE','not_equals','LANDSAT_8')
+  }
+  var indices = indices.filter(ee.Filter.dayOfYear(startDoy, endDoy))
+  
+  return ee.ImageCollection(indices)
+}  
+
+/**
+* Calculate spectral indices for all bands in collection
+* 
+* Status: 10/27/2019
+*   -Improvement (low priority): Option to provide custom equation.
+* 
+* @param {ee.ImageCollection}   collection             Landsat image collection
+* 
+* @returns {ee.ImageCollection} collectionWithIndices  Landsat image with spectral indices
+*/
+var doIndices = function(options) {
+  var collection = (options && options.collection) || null
+
+  if (!collection) {
+    return('Required parameter [collection] missing')
+  }
+     
+  var collectionWithIndices = collection.map(function(image) {
+      var NDVI =  calcNDVI(image)
+      var NBR = calcNBR(image)
+      var EVI = calcEVI(image)
+      var EVI2 = calcEVI2(image)
+      var TC = tcTrans(image)
+      var NDFI = calcNDFI(image)
+      return image.addBands([NDVI, NBR, EVI, EVI2, TC, NDFI])
+  })
+  
+  return collectionWithIndices
+}
+
+
+/**
+* Calculate NDVI for an image
+* 
+* @param {ee.Image}        image       Landsat image with NIR and RED bands
+* 
+* @returns {ee.Image}                  NDVI image
+*/
+var calcNDVI = function(image) {
+   var ndvi = ee.Image(image).normalizedDifference(['NIR', 'RED']).rename('NDVI');
+   return ndvi
+};
+
+/**
+* Calculate NBR for an image
+* 
+* @param {ee.Image}        image       Landsat image with NIR and SWIR2 bands
+* 
+* @returns {ee.Image}                  NBR image
+*/
+var calcNBR = function(image) {
+  var nbr = ee.Image(image).normalizedDifference(['NIR', 'SWIR2']).rename('NBR');
+  return nbr
+};
+
+
+var calcNDFI = function(image) {
+  /* Do spectral unmixing */
+  var gv = [500, 900, 400, 6100, 3000, 1000]
+  var shade = [0, 0, 0, 0, 0, 0]
+  var npv = [1400, 1700, 2200, 3000, 5500, 3000]
+  var soil = [2000, 3000, 3400, 5800, 6000, 5800]
+  var cloud = [9000, 9600, 8000, 7800, 7200, 6500]
+  var cf = .1 // Not parameterized
+
+
+  var cfThreshold = ee.Image.constant(cf)
+  /*  Do spectral unmixing on a single image  */
+  var unmixImage = ee.Image(image).unmix([gv, shade, npv, soil, cloud], true,true)
+                  .rename(['band_0', 'band_1', 'band_2','band_3','band_4'])
+  var newImage = ee.Image(image).addBands(unmixImage)
+  var mask = newImage.select('band_4').lt(cfThreshold)
+
+  var ndfi = ee.Image(unmixImage).expression(
+    '((GV / (1 - SHADE)) - (NPV + SOIL)) / ((GV / (1 - SHADE)) + NPV + SOIL)', {
+      'GV': ee.Image(unmixImage).select('band_0'),
+      'SHADE': ee.Image(unmixImage).select('band_1'),
+      'NPV': ee.Image(unmixImage).select('band_2'),
+      'SOIL': ee.Image(unmixImage).select('band_3')
+    })
+    
+  return ee.Image(newImage)
+        .addBands(ee.Image(ndfi).rename(['NDFI']))
+        .select(['band_0','band_1','band_2','band_3','NDFI'])
+        .rename(['GV','Shade','NPV','Soil','NDFI'])
+        .updateMask(mask)
+  }
+
+
+/**
+* Calculate EVI for an image
+* 
+* @param {ee.Image}        image       Landsat image with NIR, RED, and BLUE bands
+* 
+* @returns {ee.Image}                  NBR EVI
+*/
+var calcEVI = function(image) {
+        
+  var evi = ee.Image(image).expression(
+          'float(2.5*(((B4/10000) - (B3/10000)) / ((B4/10000) + (6 * (B3/10000)) - (7.5 * (B1/10000)) + 1)))',
+          {
+              'B4': ee.Image(image).select(['NIR']),
+              'B3': ee.Image(image).select(['RED']),
+              'B1': ee.Image(image).select(['BLUE'])
+          }).rename('EVI');    
+  
+  return evi
+};
+
+/**
+* Calculate EVI2 for an image
+* 
+* @param {ee.Image}        image       Landsat image with NIR and RED
+* 
+* @returns {ee.Image}                  NBR EVI2
+*/
+var calcEVI2 = function(image) {
+  var evi2 = ee.Image(image).expression(
+        'float(2.5*(((B4/10000) - (B3/10000)) / ((B4/10000) + (2.4 * (B3/10000)) + 1)))',
+        {
+            'B4': image.select('NIR'),
+            'B3': image.select('RED')
+        });
+  return evi2
+};
+
+/**
+* Tassel Cap coefficients from Crist 1985
+* 
+* @param {ee.Image}        image       Landsat image with BLUE, GREEN, RED, NIR, SWIR1, and SWIR2
+* 
+* @returns {ee.Image}                  3-band image with Brightness, Greenness, and Wetness
+*/
+// Tassel Cap coefficients from Crist 1985
+var tcTrans = function(image) {
+
+    // Calculate tasseled cap transformation
+    var brightness = image.expression(
+        '(L1 * B1) + (L2 * B2) + (L3 * B3) + (L4 * B4) + (L5 * B5) + (L6 * B6)',
+        {
+            'L1': image.select('BLUE'),
+            'B1': 0.2043,
+            'L2': image.select('GREEN'),
+            'B2': 0.4158,
+            'L3': image.select('RED'),
+            'B3': 0.5524,
+            'L4': image.select('NIR'),
+            'B4': 0.5741,
+            'L5': image.select('SWIR1'),
+            'B5': 0.3124,
+            'L6': image.select('SWIR2'),
+            'B6': 0.2303
+        });
+    var greenness = image.expression(
+        '(L1 * B1) + (L2 * B2) + (L3 * B3) + (L4 * B4) + (L5 * B5) + (L6 * B6)',
+        {
+            'L1': image.select('BLUE'),
+            'B1': -0.1603,
+            'L2': image.select('GREEN'),
+            'B2': -0.2819,
+            'L3': image.select('RED'),
+            'B3': -0.4934,
+            'L4': image.select('NIR'),
+            'B4': 0.7940,
+            'L5': image.select('SWIR1'),
+            'B5': -0.0002,
+            'L6': image.select('SWIR2'),
+            'B6': -0.1446
+        });
+    var wetness = image.expression(
+        '(L1 * B1) + (L2 * B2) + (L3 * B3) + (L4 * B4) + (L5 * B5) + (L6 * B6)',
+        {
+            'L1': image.select('BLUE'),
+            'B1': 0.0315,
+            'L2': image.select('GREEN'),
+            'B2': 0.2021,
+            'L3': image.select('RED'),
+            'B3': 0.3102,
+            'L4': image.select('NIR'),
+            'B4': 0.1594,
+            'L5': image.select('SWIR1'),
+            'B5': -0.6806,
+            'L6': image.select('SWIR2'),
+            'B6': -0.6109
+        });
+
+    var bright =  ee.Image(brightness).rename('BRIGHTNESS');
+    var green = ee.Image(greenness).rename('GREENNESS');
+    var wet = ee.Image(wetness).rename('WETNESS');
+    
+    var tasseledCap = ee.Image([bright, green, wet])
+    return tasseledCap
+}
+
+
+
+
+/**
+ * Convert band names from old format (B1, B2, etc) to new (BLUE, GREEN, etc)
+ * 
+ * @key {ee.Image}       oldCoefs      coefficients with integer-based band names
+ * @key {Boolean}        removeB6      whether to remove old B6 (thermal for L4-7)
+ *
+ * @returns {ee.Image}                 coefficients with spectrum-based band names
+*/
+var convertOldNew = function(options) {
+  var oldCoefs = (options && options.oldCoefs) || null
+  var removeB6 = (options && options.removeB6) || null
+  
+  if (!oldCoefs) {
+    print('Required parameter [oldCoefs] missing')
+  }
+
+  var oldBandNames = oldCoefs.bandNames()
+  var newBandNames = oldBandNames.map(function(i) {
+    return ee.String(i).replace('B1_RMSE','BLUE_RMSE')
+                       .replace('B2_RMSE','GREEN_RMSE')
+                       .replace('B3_RMSE','RED_RMSE')
+                       .replace('B4_RMSE','NIR_RMSE')
+                       .replace('B5_RMSE','SWIR1_RMSE')
+                       .replace('B7_RMSE','SWIR2_RMSE')
+                       .replace('B1','BLUE_COEF')
+                       .replace('B2','GREEN_COEF')
+                       .replace('B3','RED_COEF')
+                       .replace('B4','NIR_COEF')
+                       .replace('B5','SWIR1_COEF')
+                       .replace('B7','SWIR2_COEF')
+  
+      
+  })
+  
+  if (removeB6) {
+    oldBandNames = oldBandNames.removeAll(['B6_INTP','B6_COS','B6_SIN','B6_COS2','B6_SIN2','B6_COS3','B6_SIN3','B6_RMSE','B6_SLP'])
+    newBandNames = newBandNames.removeAll(['B6_INTP','B6_COS','B6_SIN','B6_RMSE','B6_SLP','B6_COS2','B6_SIN2','B6_COS3','B6_SIN3'])
+  }
+  return oldCoefs.select(oldBandNames).rename(newBandNames)
+}
+
+
+/**
+ * Get PRISM data for a specific date range
+ * 
+ * Status: 10/27/2019
+ *  -Improvement (high priortity): specify date format
+ * 
+ * Daly, C., Halbleib, M., Smith, J.I., Gibson, W.P., Doggett, M.K., Taylor, G.H., Curtis, J., and Pasteris, P.A. 2008. Physiographically-sensitive mapping of temperature and precipitation across the conterminous United States. International Journal of Climatology, 28: 2031-2064
+ * 
+ * @param {Dictionary}   options       parameter dictionary
+ * @key {ee.Image}       oldCoefs      coefficients with integer-based band names
+ * @key {Boolean}        removeB6      whether to remove old B6 (thermal for L4-7)
+ *
+ * @returns {ee.Image}                 coefficients with spectrum-based band names
+*/
+var getPrism = function(options) {
+  var startDate = (options && options.startDate) || null 
+  var endDate = (options && options.endDate) || null
+  
+  if (!startDate) {
+    return('Required parameter [startDate] required')
+  }
+  
+  if (!endDate) {
+    return('Required parameter [endDate] required')
+  }
+
+  var startOrdinal = dateUtils.dateToJdays(startDate).toLong()
+  var endOrdinal = dateUtils.dateToJdays(endDate).toLong()
+  
+  
+  var prismIC = ee.ImageCollection('OREGONSTATE/PRISM/AN81m')
+
+  var bandNames = prismIC.first().bandNames().map(function(i) {
+    return ee.String(i).cat('_')
+      .cat(ee.String(startOrdinal))
+      .cat('_')
+      .cat(ee.String(endOrdinal))
+  })
+
+  return prismIC.filterDate(
+    startDate,
+    endDate).mean().rename(bandNames)
+
+}
+
+
+
+/** ///////////////////////////////////////////////////////////////////
+ * 
+ * Utility functions for creating spatial grids
+ * 
+ ** /////////////////////////////////////////////////////////////////*/
+
+
+/**
+ * Create a grid with features corresponding to latitudinal strips
+ * 
+ * @param {Dictionary}     options       parameter file
+ * @key   {Number}         minY          minimum latititude coordinate
+ * @key   {Number}         maxY          maximum latititude coordinate
+ * @key   {Number}         minX          minimum longitude coordinate
+ * @key   {Number}         minX          maximum longitude coordinate
+ * @key   {Number}         size          size of features in units of latitudinal degrees
+ * 
+ * @returns {ee.FC}                      grid of features along latitudinal lines
+*/
+var makeLatGrid = function(minY, maxY, minX, maxX, size) {
+
+  var ySeq = ee.List.sequence(minY, maxY, size)
+  var numFeats = ySeq.length().subtract(2)
+  var feats = ee.List.sequence(0, numFeats).map(function(num) {
+    num = ee.Number(num)
+    var num2 = num.add(1)
+    var y1 = ee.Number(ySeq.get(num))
+    var y2 = ee.Number(ySeq.get(num2))
+    var feat = ee.Feature(ee.Geometry.Polygon([[maxX, y2], [minX, y2], [minX, y1], [maxX, y1]]))
+    return feat
+  })
+  return ee.FeatureCollection(feats)
+}
+
+
+
+/**
+ * Create a grid with features corresponding to longitudinal strips
+ * 
+ * @param {Dictionary}     options       parameter file
+ * @key   {Number}         minY          minimum latititude coordinate
+ * @key   {Number}         maxY          maximum latititude coordinate
+ * @key   {Number}         minX          minimum longitude coordinate
+ * @key   {Number}         minX          maximum longitude coordinate
+ * @key   {Number}         size          size of features in units of latitudinal degrees
+ * 
+ * @returns {ee.FC}                      grid of features along longitudinal lines
+*/
+var makeLonGrid = function(minY, maxY, minX, maxX, size) {
+
+  var ySeq = ee.List.sequence(minX, maxX, size)
+  var numFeats = ySeq.length().subtract(2)
+  var feats = ee.List.sequence(0, numFeats).map(function(num) {
+    num = ee.Number(num)
+    var num2 = num.add(1)
+    var x1 = ee.Number(ySeq.get(num))
+    var x2 = ee.Number(ySeq.get(num2))
+    var feat = ee.Feature(ee.Geometry.Polygon([[x2, maxY], [x1, maxY], [x1, minY], [x2, minY]]))
+    return feat
+  })
+  return ee.FeatureCollection(feats)
+}
+
+/**
+ * Create a grid with features corresponding to longitudinal strips
+ * 
+ * @param {Dictionary}     options       parameter file
+ * @key   {Number}         minY          minimum latititude coordinate
+ * @key   {Number}         maxY          maximum latititude coordinate
+ * @key   {Number}         minX          minimum longitude coordinate
+ * @key   {Number}         minX          maximum longitude coordinate
+ * @key   {Number}         size          size of features in units of latitudinal degrees
+ * 
+ * @returns {ee.FC}                      grid of features along longitudinal lines
+*/
+var makeLonLatGrid = function(minY, maxY, minX, maxX, size) {
+
+  var xSeq = ee.List.sequence(minX, maxX, size)
+  var ySeq = ee.List.sequence(minY, maxY, size)
+  
+  var numFeatsY = ySeq.length().subtract(2)
+  var numFeatsX = xSeq.length().subtract(2)
+
+  var feats = ee.List.sequence(0, numFeatsY).map(function(y) {
+    y = ee.Number(y)
+    var y2 = y.add(1)
+    var y1_val = ee.Number(ySeq.get(y))
+    var y2_val = ee.Number(ySeq.get(y2))
+    var feat = ee.List.sequence(0, numFeatsX).map(function(x) {
+      x = ee.Number(x)
+      var x2 = x.add(1)
+      var x1_val = ee.Number(xSeq.get(x))
+      var x2_val = ee.Number(xSeq.get(x2))
+      return ee.Feature(ee.Geometry.Polygon([[x2_val, y2_val], [x1_val, y2_val], [x1_val, y1_val], [x2_val, y1_val]]))
+    })
+    return feat
+   
+  })
+  return ee.FeatureCollection(feats.flatten())
+}
+
+
+
+/** 
+* Get ancillary data for trainning and classification.
+* 
+* 
+* @returns {ee.Image}                Multi-band image containing ancillary layers
+*/ 
+var getAncillary = function(){
+
+  var demImage = ee.Image('USGS/SRTMGL1_003').rename('ELEVATION')
+  var slope = ee.Terrain.slope(demImage).rename('DEM_SLOPE')
+  var aspect = ee.Terrain.aspect(demImage).rename('ASPECT')
+
+  var bio = ee.Image('WORLDCLIM/V1/BIO').select(['bio01','bio12']).rename(['TEMPERATURE','RAINFALL'])
+  
+  
+  return ee.Image.cat([demImage, slope, aspect, bio])
+
+}
+
+
+
+
+
+
+exports = {
+  getLandsat: getLandsat,
+  doIndices: doIndices,
+  convertOldNew: convertOldNew,
+  getPrism: getPrism,
+  makeLatGrid: makeLatGrid,
+  makeLonGrid: makeLonGrid,
+  makeLonLatGrid: makeLonLatGrid,
+  getAncillary: getAncillary
+}
+
+

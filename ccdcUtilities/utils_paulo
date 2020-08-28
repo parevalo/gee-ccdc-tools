@@ -1,0 +1,1452 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var image = ee.Image("projects/GLANCE/RESULTS/CHANGEDETECTION/GLOBAL/CCDC_1999_2020Togoh_21_v_21");
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+
+/** ///////////////////////////////////////////////////////////////////
+ * 
+ * Utility functions for getting inputs for CCDC
+ * 
+ ** /////////////////////////////////////////////////////////////////*/
+
+/**
+* Make cloud mask for Landsat 4,5, and 7
+* 
+* @param {ee.Image}        img         Landsat image with pixel_qa band
+* 
+* @returns {ee.Image}                  Landsat image with clouds and shadows masked
+*/
+var mask457 = function(img) {
+  var mask = img.select(['pixel_qa']).eq(66)
+              .or(img.select(['pixel_qa']).eq(68))
+              .and(img.select('B1').gt(ee.Image(0)))
+  return img.updateMask(mask)
+    .select(['B1', 'B2','B3','B4','B5','B7'])
+    .rename(['BLUE','GREEN','RED','NIR','SWIR1','SWIR2'])
+} 
+
+/**
+* Make cloud mask for Landsat 8
+* 
+* @param {ee.Image}        img         Landsat image with pixel_qa band
+* 
+* @returns {ee.Image}                  Landsat image with clouds and shadows masked
+*/
+var mask8 = function(img) {
+  var mask = img.select(['pixel_qa']).eq(322)
+               .or(img.select(['pixel_qa']).eq(324))
+               .and(img.select('B1').gt(ee.Image(0)))
+               
+  return ee.Image(img).updateMask(mask)
+    .select(['B2', 'B3','B4','B5','B6','B7'])
+    .rename(['BLUE','GREEN','RED','NIR','SWIR1','SWIR2'])
+};
+
+
+/**
+* Get Landsat images for a specific region
+* 
+* @param {ee.Dict}        options         Parameter file containing the keys below
+*   @key {String}         start           First date to filter images
+*   @key {String}         end             Last date to filter images
+*   @key {list}           targetBands     Bands and indices to return
+* 
+* Possible bands and indices: BLUE, GREEN, RED, NIR, SWIR1, SWIR2, NDVI, NBR, EVI, EVI2, 
+*                             BRIGHTNESS, GREENNESS, WETNESS
+* 
+* @returns                ee.ImageCol.    Masked image collection with L4, L5, L7, and L8
+*/
+var getLandsat = function(options) {
+  var start = (options && options.start) || '1990-01-01'
+  var end = (options && options.end) || '2020-01-01'
+  var region = (options && options.region) || null
+  var targetBands = (options && options.targetBands) || ['BLUE','GREEN','RED','NIR','SWIR1','SWIR2']
+
+
+  var collection4 = ee.ImageCollection('LANDSAT/LT04/C01/T1_SR')
+      .filterDate(start, end)
+  var collection5 = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR')
+      .filterDate(start, end)
+  var collection7 = ee.ImageCollection('LANDSAT/LE07/C01/T1_SR')
+      .filterDate(start, end)
+  var collection8 = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR')
+      .filterDate(start, end)
+      
+  var col4NoClouds = collection4.map(mask457)
+  var col5NoClouds = collection5.map(mask457)
+  var col7NoClouds = collection7.map(mask457)
+  var col8NoClouds = collection8.map(mask8)
+
+  var col = col4NoClouds.merge(col5NoClouds)
+                        .merge(col7NoClouds)
+                        .merge(col8NoClouds)
+  if (region) {
+    col = col.filterBounds(region)
+  }
+  
+  var indices = doIndices({collection: col})
+  return indices.select(targetBands)
+}  
+
+/**
+* Calculate spectral indices for all bands in collection
+* 
+* @param {ee.ImageCollection}   collection             Landsat image collection
+* 
+* @returns {ee.ImageCollection} collectionWithIndices  Landsat image with spectral indices
+*/
+var doIndices = function(options) {
+  var collection = (options && options.collection) || null
+
+  if (!collection) {
+    return('Required parameter [collection] missing')
+  }
+     
+  var collectionWithIndices = collection.map(function(image) {
+      var NDVI =  calcNDVI(image)
+      var NBR = calcNBR(image)
+      var EVI = calcEVI(image)
+      var EVI2 = calcEVI2(image)
+      var TC = tcTrans(image)
+      return image.addBands([NDVI, NBR, EVI, EVI2, TC])
+  })
+  
+  return collectionWithIndices
+}
+
+
+/**
+* Calculate NDVI for an image
+* 
+* @param {ee.Image}        image       Landsat image with NIR and RED bands
+* 
+* @returns {ee.Image}                  NDVI image
+*/
+var calcNDVI = function(image) {
+   var ndvi = ee.Image(image).normalizedDifference(['NIR', 'RED']).rename('NDVI');
+   return ndvi
+};
+
+/**
+* Calculate NBR for an image
+* 
+* @param {ee.Image}        image       Landsat image with NIR and SWIR2 bands
+* 
+* @returns {ee.Image}                  NBR image
+*/
+var calcNBR = function(image) {
+  var nbr = ee.Image(image).normalizedDifference(['NIR', 'SWIR2']).rename('NBR');
+  return nbr
+};
+
+/**
+* Calculate EVI for an image
+* 
+* @param {ee.Image}        image       Landsat image with NIR, RED, and BLUE bands
+* 
+* @returns {ee.Image}                  NBR EVI
+*/
+var calcEVI = function(image) {
+        
+  var evi = ee.Image(image).expression(
+          'float(2.5*(((B4/10000) - (B3/10000)) / ((B4/10000) + (6 * (B3/10000)) - (7.5 * (B1/10000)) + 1)))',
+          {
+              'B4': ee.Image(image).select(['NIR']),
+              'B3': ee.Image(image).select(['RED']),
+              'B1': ee.Image(image).select(['BLUE'])
+          }).rename('EVI');    
+  
+  return evi
+};
+
+/**
+* Calculate EVI2 for an image
+* 
+* @param {ee.Image}        image       Landsat image with NIR and RED
+* 
+* @returns {ee.Image}                  NBR EVI2
+*/
+var calcEVI2 = function(image) {
+  var evi2 = ee.Image(image).expression(
+        'float(2.5*(((B4/10000) - (B3/10000)) / ((B4/10000) + (2.4 * (B3/10000)) + 1)))',
+        {
+            'B4': image.select('NIR'),
+            'B3': image.select('RED')
+        });
+  return evi2
+};
+
+/**
+* Tassel Cap coefficients from Crist 1985
+* 
+* @param {ee.Image}        image       Landsat image with BLUE, GREEN, RED, NIR, SWIR1, and SWIR2
+* 
+* @returns {ee.Image}                  3-band image with Brightness, Greenness, and Wetness
+*/
+// Tassel Cap coefficients from Crist 1985
+var tcTrans = function(image) {
+
+    // Calculate tasseled cap transformation
+    var brightness = image.expression(
+        '(L1 * B1) + (L2 * B2) + (L3 * B3) + (L4 * B4) + (L5 * B5) + (L6 * B6)',
+        {
+            'L1': image.select('BLUE'),
+            'B1': 0.2043,
+            'L2': image.select('GREEN'),
+            'B2': 0.4158,
+            'L3': image.select('RED'),
+            'B3': 0.5524,
+            'L4': image.select('NIR'),
+            'B4': 0.5741,
+            'L5': image.select('SWIR1'),
+            'B5': 0.3124,
+            'L6': image.select('SWIR2'),
+            'B6': 0.2303
+        });
+    var greenness = image.expression(
+        '(L1 * B1) + (L2 * B2) + (L3 * B3) + (L4 * B4) + (L5 * B5) + (L6 * B6)',
+        {
+            'L1': image.select('BLUE'),
+            'B1': -0.1603,
+            'L2': image.select('GREEN'),
+            'B2': -0.2819,
+            'L3': image.select('RED'),
+            'B3': -0.4934,
+            'L4': image.select('NIR'),
+            'B4': 0.7940,
+            'L5': image.select('SWIR1'),
+            'B5': -0.0002,
+            'L6': image.select('SWIR2'),
+            'B6': -0.1446
+        });
+    var wetness = image.expression(
+        '(L1 * B1) + (L2 * B2) + (L3 * B3) + (L4 * B4) + (L5 * B5) + (L6 * B6)',
+        {
+            'L1': image.select('BLUE'),
+            'B1': 0.0315,
+            'L2': image.select('GREEN'),
+            'B2': 0.2021,
+            'L3': image.select('RED'),
+            'B3': 0.3102,
+            'L4': image.select('NIR'),
+            'B4': 0.1594,
+            'L5': image.select('SWIR1'),
+            'B5': -0.6806,
+            'L6': image.select('SWIR2'),
+            'B6': -0.6109
+        });
+
+    var bright =  ee.Image(brightness).rename('BRIGHTNESS');
+    var green = ee.Image(greenness).rename('GREENNESS');
+    var wet = ee.Image(wetness).rename('WETNESS');
+    
+    var tasseledCap = ee.Image([bright, green, wet])
+    return tasseledCap
+}
+
+/**
+ * Convert band names from old format (B1, B2, etc) to new (BLUE, GREEN, etc)
+ * 
+ * @key {ee.Image}       oldCoefs      coefficients with integer-based band names
+ * @key {Boolean}        removeB6      whether to remove old B6 (thermal for L4-7)
+ *
+ * @returns {ee.Image}                 coefficients with spectrum-based band names
+*/
+var convertOldNew = function(options) {
+  var oldCoefs = (options && options.oldCoefs) || null
+  var removeB6 = (options && options.removeB6) || null
+  
+  if (!oldCoefs) {
+    print('Required parameter [oldCoefs] missing')
+  }
+
+  var oldBandNames = oldCoefs.bandNames()
+  var newBandNames = oldBandNames.map(function(i) {
+    return ee.String(i).replace('B1_RMSE','BLUE_RMSE')
+                       .replace('B2_RMSE','GREEN_RMSE')
+                       .replace('B3_RMSE','RED_RMSE')
+                       .replace('B4_RMSE','NIR_RMSE')
+                       .replace('B5_RMSE','SWIR1_RMSE')
+                       .replace('B7_RMSE','SWIR2_RMSE')
+                       .replace('B1','BLUE_COEF')
+                       .replace('B2','GREEN_COEF')
+                       .replace('B3','RED_COEF')
+                       .replace('B4','NIR_COEF')
+                       .replace('B5','SWIR1_COEF')
+                       .replace('B7','SWIR2_COEF')
+  
+      
+  })
+  
+  if (removeB6) {
+    oldBandNames = oldBandNames.removeAll(['B6_INTP','B6_COS','B6_SIN','B6_COS2','B6_SIN2','B6_COS3','B6_SIN3','B6_RMSE','B6_SLP'])
+    newBandNames = newBandNames.removeAll(['B6_INTP','B6_COS','B6_SIN','B6_RMSE','B6_SLP','B6_COS2','B6_SIN2','B6_COS3','B6_SIN3'])
+  }
+  return oldCoefs.select(oldBandNames).rename(newBandNames)
+}
+
+
+/**
+ * Get PRISM data for a specific date range
+ * 
+ * Daly, C., Halbleib, M., Smith, J.I., Gibson, W.P., Doggett, M.K., Taylor, G.H., Curtis, J., and Pasteris, P.A. 2008. Physiographically-sensitive mapping of temperature and precipitation across the conterminous United States. International Journal of Climatology, 28: 2031-2064
+ * 
+ * @param {Dictionary}   options       parameter dictionary
+ * @key {ee.Image}       oldCoefs      coefficients with integer-based band names
+ * @key {Boolean}        removeB6      whether to remove old B6 (thermal for L4-7)
+ *
+ * @returns {ee.Image}                 coefficients with spectrum-based band names
+*/
+var getPrism = function(options) {
+  var startDate = (options && options.startDate) || null 
+  var endDate = (options && options.endDate) || null
+  
+  if (!startDate) {
+    return('Required parameter [startDate] required')
+  }
+  
+  if (!endDate) {
+    return('Required parameter [endDate] required')
+  }
+
+  var startOrdinal = dateToJdays(startDate).toLong()
+  var endOrdinal = dateToJdays(endDate).toLong()
+  
+  
+  var prismIC = ee.ImageCollection('OREGONSTATE/PRISM/AN81m')
+
+  var bandNames = prismIC.first().bandNames().map(function(i) {
+    return ee.String(i).cat('_')
+      .cat(ee.String(startOrdinal))
+      .cat('_')
+      .cat(ee.String(endOrdinal))
+  })
+
+  return prismIC.filterDate(
+    startDate,
+    endDate).mean().rename(bandNames)
+
+}
+
+
+
+var inputUtils = {
+  getLandsat: getLandsat,
+  doIndices: doIndices,
+  convertOldNew: convertOldNew,
+  getPrism: getPrism
+}
+
+
+
+
+
+
+/** ///////////////////////////////////////////////////////////////////
+ * 
+ * Utility functions for working with the output of CCDC
+ * 
+ ** /////////////////////////////////////////////////////////////////*/
+
+
+
+
+
+
+/** 
+* Normalize intercept coefficient [V0 or V1]
+* 
+* 
+* Normalize the intercept to the middle of the segment time period, instead
+* of the 0 time period.
+* 
+* @param {ee.Image}      intercept     Image band representing model intercept
+* @param {ee.Image}      start         Image band representing model slope date
+* @param {ee.Image}      end           Image band representing model end date
+* @param {ee.Image}      slope         Image band representing model slope
+* 
+* @returns {ee.Image}                  Image band representing normalized intercept.
+* 
+*/ 
+var normalizeIntercept = function(options) {
+  
+  var intercept = (options && options.intercept) || null
+  var start = (options && options.start) || null
+  var end = (options && options.end) || null
+  var slope = (options && options.slope) || null
+
+  if (!intercept) {
+    return('Required parameter [intercept] missing')
+  }
+  else if (!start) {
+    return('Required parameter [start] missing')
+  }
+  else if (!end) {
+    return('Required parameter [end] missing')
+    
+  }
+  else if (!slope) {
+    return('Required parameter [slope] missing')
+    }
+
+  var middleDate = ee.Image(start).add(ee.Image(end)).divide(2)
+
+  var slopeCoef = ee.Image(slope).multiply(middleDate)
+  
+  return ee.Image(intercept).add(slopeCoef)
+}
+
+
+/**
+* Get synthetic reflectance at given date and band
+* 
+* Modified from Yang Zhiqiang's repo 'users/yang/CCDC'
+* 
+* @param {ee.Image}       image         coefficient image filtered at date of interest
+* @param {ee.Date}        date          date to predict reflectance
+* @param {String}         band          bandname to predict
+* 
+* 
+* @returns                ee.Image      predicted reflectance data
+*  
+*/
+var getSyntheticForYear = function(image, date, band) {
+  var epoch = ee.Date('1970-01-01')
+  var days = 719529
+  
+  var tfit = date.difference(epoch, 'day').add(days)
+  var omega = 2.0 * Math.PI / 365.25
+  var imageT = ee.Image.constant([1, tfit,
+                                tfit.multiply(omega).cos(),
+                                tfit.multiply(omega).sin(),
+                                tfit.multiply(omega * 2).cos(),
+                                tfit.multiply(omega * 2).sin(),
+                                tfit.multiply(omega * 3).cos(),
+                                tfit.multiply(omega * 3).sin()])
+  
+  var params = image.select('.*' + band + '_COEF_.*')
+  
+  return imageT.multiply(params).reduce('sum').rename(band)
+  
+}
+
+/**
+* Get synthetic image at given date
+* 
+* @param {ee.Dict}        options         Parameter file containing the keys below
+*   @key {ee.Image}       results         ccdc result image filtered at date of interest
+*   @key {String}         date            date to predict reflectance
+*   @key {List}           bandList        bandnames to predict
+* 
+* 
+* @returns                ee.Image      predicted reflectance data
+*  
+*/
+var makePredictedImage = function(options) {
+  
+  var results = (options && options.results) || null
+  var date = (options && options.date) || null
+  var bandList = (options && options.bandList) || ['B6','B5','B4','B3','B2','B1','B0']
+
+  if (!results) {
+    return('Required parameter [results] missing')
+  }
+  else if (!date) {
+    return('Required parameter [date] missing')
+  }
+  results = ee.Image(getBandsAtDate({fullImage: results,
+                                            date: dateToJdays(date)
+                                            }))
+  var seg_start = results.select("tStart")
+  var seg_end = results.select("tEnd")
+  var predictedBands = bandList.map(function(i) {
+    var slope = results.select('.*'.concat(i).concat("_COEF_SLP"))
+
+    var interc = results.select('.*'.concat(i).concat("_COEF_INTP"))
+  
+    var normInt = normalizeIntercept({intercept: interc, 
+                                       start: seg_start, 
+                                        end: seg_end, 
+                                        slope:slope})
+    return getSyntheticForYear(results, ee.Date(date), i)
+  })
+
+  return ee.ImageCollection(ee.List(predictedBands)).toBands().rename(bandList)
+}
+
+/**
+* Get results  at given date
+* 
+* @param {ee.Dict}        options         Parameter file containing the keys below
+*   @key {ee.Image}       fullImage       ccdc result image filtered at date of interest
+*   @key {Number}         date            date to predict reflectance [currently in Jdays TODO]
+*   @key {Number}         numBands        number of bands in records [TODO, should be unnecessary]
+*   @key {ee.List}        coefNames       coefficient abbreviated names in order of results
+* 
+* 
+* @returns                ee.Image        image of results intersecting given date
+*  
+*/
+var getBandsAtDate = function(options) {
+   
+  var fullImage = (options && options.fullImage) || null
+  var date = (options && options.date) || null
+  var dateFormat = (options && options.dateFormat) || 0
+  var numBands = (options && options.numBands) || 7
+
+  var coefNames = (options && options.coefNames) ||  ee.List(['INTP','SLP','COS','SIN','COS2','SIN2','COS3','SIN3'])
+
+  if (!fullImage) {
+    return('Required parameter [fullImage] missing')
+  }
+  else if (!date) {
+    return('Required parameter [date] missing')
+  }
+  
+  // if (date == 1) {
+  //   date = 
+  // }
+  
+  // Reproject and extract array bands
+  fullImage = fullImage.reproject("EPSG:4326", null, 30)
+  var coefs = fullImage.select('coefs')
+  var rmses = fullImage.select('rmse')
+  var mags = fullImage.select('magnitude')
+  var tStart = fullImage.select('tStart')
+  var tEnd = fullImage.select('tEnd')
+
+  // Make mask where 1 = model intersecting date and 0 = not intersecting
+  var mask = tStart.lte(ee.Image(date)).and(tEnd.gt(ee.Image(date)))
+  // return mask}
+  // Subtract 1 because we are indexing on 0
+  numBands = ee.Number(numBands).subtract(1)
+  var numCoefs = coefNames.length().subtract(1)
+  
+  var bandSequence = ee.List.sequence(0, numBands)
+  var coefSequence = ee.List.sequence(0, numCoefs)
+  
+  // Generate names that correspond to the band and rmse
+  var rmseNames = ee.List.sequence(0, numBands).map(function(r) {
+      return ee.String('B').cat(ee.String(ee.Number(r).toLong())).cat('_RMSE')
+    })
+    
+  // Generate names that correspond to the band and magnitude  
+  var magNames = ee.List.sequence(0, numBands).map(function(r) {
+      return ee.String('B').cat(ee.String(ee.Number(r).toLong())).cat('_MAG')
+    })
+  
+  // Map over bands
+  var bandsMasked = bandSequence.map(function(i) {
+    var bandIndex = ee.Number(i).toLong()
+    var bandIndex2 = bandIndex.add(1)
+    
+    // Generate names that correspond to the band and each coefficient
+    var bandNames = ee.List.sequence(0, numCoefs).map(function(r) {
+      return ee.String('B').cat(ee.String(ee.Number(i).toLong())).cat('_COEF_').cat(ee.String(coefNames.get(r)))
+    })
+
+    
+    // Map over coefs
+    var coefsMasked = coefSequence.map(function(o) {
+      var coefIndex = ee.Number(o).toLong()
+      var coefIndex2 = coefIndex.add(1)
+      var coef = coefs.arraySlice(2,coefIndex,coefIndex2)
+                      .arraySlice(1,bandIndex,bandIndex2)
+                      .arrayProject([0])
+                      .rename([bandNames.get(o)])
+                      
+                      
+      var coefReduced = coef.multiply(mask).arrayReduce(ee.Reducer.sum(), [0])
+      return coefReduced.arrayFlatten([[bandNames.get(o)]])
+      
+    })
+    
+    // Get RMSE and change magnitude 
+    var rmse = rmses.arraySlice(1, bandIndex, bandIndex2)
+                    .arrayProject([0])
+                    .multiply(mask).arrayReduce(ee.Reducer.sum(), [0])
+                    .arrayFlatten([[rmseNames.get(i)]])
+                    
+    var mag = mags.arraySlice(1, bandIndex, bandIndex2)
+                    .arrayProject([0])
+                    .multiply(mask).arrayReduce(ee.Reducer.sum(), [0])
+                    .arrayFlatten([[magNames.get(i)]])
+    return coefsMasked.add([rmse, mag])
+  })
+  
+  // start, end, and break
+  var tStart = fullImage.select('tStart').multiply(mask)
+                        .arrayReduce(ee.Reducer.sum(), [0])
+                        .arrayFlatten([['tStart']])
+  var tEnd = fullImage.select('tEnd').multiply(mask)
+                        .arrayReduce(ee.Reducer.sum(), [0])
+                        .arrayFlatten([['tEnd']])
+  var tBreak = fullImage.select('tBreak').multiply(mask)
+                        .arrayReduce(ee.Reducer.sum(), [0])
+                        .arrayFlatten([['tBreak']])
+  
+  return ee.ImageCollection(bandsMasked.flatten()).toBands().addBands([tStart, tEnd, tBreak])
+  
+}
+
+
+/**
+* Get results  at given date
+* 
+* @param {ee.Dict}        options         Parameter file containing the keys below
+*   @key {ee.Image}       fullImage       ccdc result image filtered at date of interest
+*   @key {Number}         date            date to predict reflectance [currently in Jdays TODO]
+*   @key {Number}         numBands        number of bands in records [TODO, should be unnecessary]
+*   @key {ee.List}        coefNames       coefficient abbreviated names in order of results
+* 
+* 
+* @returns                ee.Image        image of results intersecting given date
+*  
+*/
+var getCoefsAtDate = function(options) {
+   
+  var fullImage = (options && options.fullImage) || null
+  var date = (options && options.date) || null
+  var dateFormat = (options && options.dateFormat) || 0
+  var numBands = (options && options.numBands) || 7
+
+  var coefNames = (options && options.coefNames) ||  ee.List(['INTP','SLP','COS','SIN','COS2','SIN2','COS3','SIN3'])
+
+  if (!fullImage) {
+    return('Required parameter [fullImage] missing')
+  }
+  else if (!date) {
+    return('Required parameter [date] missing')
+  }
+  
+  // if (date == 1) {
+  //   date = 
+  // }
+  
+  // Reproject and extract array bands
+  fullImage = fullImage.reproject("EPSG:4326", null, 30)
+  var coefs = fullImage.select('coefs')
+  var tStart = fullImage.select('tStart')
+  var tEnd = fullImage.select('tEnd')
+  
+  // Make mask where 1 = model intersecting date and 0 = not intersecting
+  var mask = tStart.lte(ee.Image(date)).and(tEnd.gt(ee.Image(date)))
+
+  // Subtract 1 because we are indexing on 0
+  numBands = ee.Number(numBands).subtract(1)
+  var numCoefs = coefNames.length().subtract(1)
+  var bandSequence = ee.List.sequence(0, numBands)
+  var coefSequence = ee.List.sequence(0, numCoefs)
+
+  // Map over bands
+  var bandsMasked = bandSequence.map(function(i) {
+    var bandIndex = ee.Number(i).toLong()
+    var bandIndex2 = bandIndex.add(1)
+    
+    // Generate names that correspond to the band and each coefficient
+    var bandNames = ee.List.sequence(0, numCoefs).map(function(r) {
+      return ee.String('B').cat(ee.String(ee.Number(i).toLong())).cat('_COEF_').cat(ee.String(coefNames.get(r)))
+    })
+
+    
+    // Map over coefs
+    var coefsMasked = coefSequence.map(function(o) {
+      var coefIndex = ee.Number(o).toLong()
+      var coefIndex2 = coefIndex.add(1)
+      var coef = coefs.arraySlice(2,coefIndex,coefIndex2)
+                      .arraySlice(1,bandIndex,bandIndex2)
+                      .arrayProject([0])
+                      .rename([bandNames.get(o)])
+                      
+                      
+      var coefReduced = coef.multiply(mask).arrayReduce(ee.Reducer.sum(), [0])
+      return coefReduced.arrayFlatten([[bandNames.get(o)]])
+      
+    })
+    
+    return coefsMasked
+  })
+  
+  return ee.ImageCollection(bandsMasked.flatten()).toBands()
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+* Get intercept, slop, coefs and rmse at given date, modified from the getBandsAtDate function
+* 
+* @param {ee.Dict}        options         Parameter file containing the keys below
+*   @key {ee.Image}       fullImage       ccdc result image filtered at date of interest
+*   @key {Number}         date            date to predict reflectance [currently in Jdays TODO]
+*   @key {Number}         numBands        number of bands in records [TODO, should be unnecessary]
+*   @key {ee.List}        coefList        coefficient abbreviated names in order of results
+* 
+* 
+* @returns                ee.Image        image of intercept, slop, coefs and rmse intersecting given date
+*  
+*/
+var getFeaturesAtDate = function(options) {
+   
+  var fullImage = (options && options.fullImage) || null
+  var date = (options && options.date) || null
+  var numBands = (options && options.numBands) || 7
+
+  var coefNames = (options && options.coefNames) ||  ee.List(['INTP','SLP','COS','SIN','COS2','SIN2','COS3','SIN3'])
+
+  if (!fullImage) {
+    return('Required parameter [fullImage] missing')
+  }
+  else if (!date) {
+    return('Required parameter [date] missing')
+  }
+  
+  // Reproject and extract array bands
+  fullImage = fullImage.reproject("EPSG:4326", null, 30)
+  var coefs = fullImage.select('coefs')
+  var rmses = fullImage.select('rmse')
+  var tStart = fullImage.select('tStart')
+  var tEnd = fullImage.select('tEnd')
+  
+  // Make mask where 1 = model intersecting date and 0 = not intersecting
+  var mask = tStart.lte(date).and(tEnd.gt(date))
+
+  // Subtract 1 because we are indexing on 0
+  numBands = ee.Number(numBands).subtract(1)
+  var numCoefs = coefNames.length().subtract(1)
+  
+  var bandSequence = ee.List.sequence(0, numBands)
+  var coefSequence = ee.List.sequence(0, numCoefs)
+  
+  // Generate names that correspond to the band and rmse
+  var rmseNames = ee.List.sequence(0, numBands).map(function(r) {
+      return ee.String('B').cat(ee.String(ee.Number(r).toLong())).cat('_RMSE')
+    })
+
+  // Map over bands
+  var bandsMasked = bandSequence.map(function(i) {
+    var bandIndex = ee.Number(i).toLong()
+    var bandIndex2 = bandIndex.add(1)
+    
+    // Generate names that correspond to the band and each coefficient
+    var bandNames = ee.List.sequence(0, numCoefs).map(function(r) {
+      return ee.String('B').cat(ee.String(ee.Number(i).toLong())).cat('_COEF_').cat(ee.String(coefNames.get(r)))
+    })
+
+    
+    // Map over coefs
+    var coefsMasked = coefSequence.map(function(o) {
+      var coefIndex = ee.Number(o).toLong()
+      var coefIndex2 = coefIndex.add(1)
+      var coef = coefs.arraySlice(2,coefIndex,coefIndex2)
+                      .arraySlice(1,bandIndex,bandIndex2)
+                      .arrayProject([0])
+                      .rename([bandNames.get(o)])
+                      
+                      
+      var coefReduced = coef.multiply(mask).arrayReduce(ee.Reducer.sum(), [0])
+      return coefReduced.arrayFlatten([[bandNames.get(o)]])
+      
+    })
+    
+    // Get RMSE and change magnitude 
+    var rmse = rmses.arraySlice(1, bandIndex, bandIndex2)
+                    .arrayProject([0])
+                    .multiply(mask).arrayReduce(ee.Reducer.sum(), [0])
+                    .arrayFlatten([[rmseNames.get(i)]])
+
+    return coefsMasked.add([rmse])
+  })
+
+  return ee.ImageCollection(bandsMasked.flatten()).toBands()
+}
+
+
+
+var outputUtils = {
+  normalizeIntercept: normalizeIntercept,
+  getLandsat: getLandsat,
+  getSyntheticForYear: getSyntheticForYear,
+  makePredictedImage: makePredictedImage,
+  getBandsAtDate: getBandsAtDate,
+  getFeaturesAtDate: getFeaturesAtDate,
+}
+
+
+
+
+// DATE 
+
+
+/** ///////////////////////////////////////////////////////////////////
+ * 
+ * Date functions for converting to and from milliseconds since 1970-01-01,
+ * fractional dates and julian days since 0001-01-1
+ * 
+ ** /////////////////////////////////////////////////////////////////*/
+
+/// CONSTANTS
+// Julian date of date 01-01-0001
+var ORIGIN = 1721423
+// Conversion factor from ms to days
+var MS_TO_DAYS = 86400000
+// Number of days between 01-01-0001 (inclusive) and 01-01-1970 (non-inclusive)
+var EPOCH_DAYS = ee.Number(719163)
+
+
+/// FUNCTIONS
+
+/**
+ * ms since epoch (01-01-1970 ) to number of days 
+ * @param {Number}      ms    ms since 01-01-1970)
+ * @returns {ee.Number}             
+ * 
+*/ 
+var msToDays = function(ms){
+  return ee.Number(ms).divide(MS_TO_DAYS)
+}
+
+
+/** 
+ * Convert Date to julian days (i.e. days since 01-01-0001)
+ * @param {String}      str_date    Date string in yyyy-mm-dd format 
+ * @returns {ee.Number}             Julian day            
+ * 
+*/
+var dateToJdays = function(str_date){
+   if (!str_date) {
+    return('Required parameter [str_date] missing')
+  }
+  var date = ee.Date(str_date)
+
+  // Convert unix time to days
+  return msToDays(date.millis()).add(EPOCH_DAYS)
+}
+
+
+/** 
+ * Convert julian day (i.e. days since 01-01-0001) to ms since 1970-01-01
+ * @param {Number}      jdays     Julian day 
+ * @returns {ee.Number}           ms since 1970-01-01  
+ * 
+*/
+var jdaysToms = function(jdays){
+  var daysSinceEpoch = ee.Number(jdays).subtract(EPOCH_DAYS)
+  return daysSinceEpoch.multiply(MS_TO_DAYS)
+}
+
+
+/** 
+ * Convert julian day (i.e. days since 01-01-0001) to ee.Date
+ * @param {Number}      jdays     Julian day 
+ * @returns {ee.Date}             ee.Date  
+ * 
+*/
+var jdaysToDate = function(jdays){
+  return ee.Date(jdaysToms(jdays))
+}
+
+
+/** 
+ * Convert ms since 1970-01-01 to julian day (i.e. days since 01-01-0001)
+ * @param {Number}      ms  ms since 1970-01-01
+ * @returns {ee.Number}     Julian day  
+ * 
+*/
+var msToJdays = function(ms){
+  return ee.Number(msToDays(ms)).add(EPOCH_DAYS)
+}
+
+/// Date to milliseconds
+// Not required. use ee.Date.millis()
+
+
+/** 
+ * Convert ms since 1970-01-01 to fractional year
+ * @param {Number}      ms  ms since 1970-01-01
+ * @returns {ee.Number}     Fractional year  
+ * 
+*/
+var msToFrac = function(ms){
+  var year = (ee.Date(ms).get('year')) 
+  var frac = (ee.Date(ms).getFraction('year'))  
+  return year.add(frac)
+}
+
+/** 
+ * Convert fractional time to ms since 1970-01-01. DOES NOT ACCOUNT FOR LEAP YEARS
+ * @param {Number}      frac  Fractional year
+ * @returns {ee.Number}       ms since 1970-01-01
+ * 
+*/
+var fracToms = function(frac){
+  var fyear = ee.Number(frac)
+  var year = fyear.floor()
+  var d = fyear.subtract(year).multiply(365)
+  var day_one = ee.Date.fromYMD(year, 1, 1)
+  return day_one.advance(d, 'day').millis()
+  
+}
+
+/**
+ * Convert ms to ee.Date
+*/
+
+var msToDate = function(ms){return jdaysToDate(msToJdays(ms))}
+
+var dateUtils = {
+  msToDays: msToDays,
+  dateToJdays: dateToJdays,
+  jdaysToms: jdaysToms,
+  jdaysToDate: jdaysToDate,
+  msToJdays: msToJdays,
+  msToFrac: msToFrac,
+  msToDate: msToDate,
+  fracToms: fracToms
+}
+
+//// TEST
+
+// print(msToDays(86400000))  //86400000 ms = 1 day
+// print(dateToJdays('0001-01-01')) // 1
+// print(dateToJdays('2019-10-01')) // 737333
+// print(jdaysToms(737333)) // 1569888000000
+// print(ee.Date(1569888000000)) // 2019-10-01
+// print(jdaysToDate(737333)) // 2019-10-01
+// print(msToJdays(1569888000000)) // 737333
+// print(msToFrac(1569888000000)) // 2019.7479452054795
+// print(fracToms(2019.7479452054795)) // 1569888000000 
+// print(ee.Date(1569888000000)) // 2019-10-01
+
+
+
+
+/** ///////////////////////////////////////////////////////////////////
+ * 
+ * Utility functions for classifying CCDC
+ * 
+ ** /////////////////////////////////////////////////////////////////*/
+
+
+/** 
+* Get ancillary data for trainning and classification.
+* TODO: GLDAS-2.1
+* 
+* @param {dictionary}    options   Input paramater dictionary
+*   @key   {Boolean}       dem       Return SRTM 30m DEM
+*   @key   {Boolean}       slope     Calculate slope from SRTM DEM [dem required]
+*   @key   {Boolean}       aspect    Calculate aspect from SRTM DEM [dem required]
+* 
+* @returns {ee.Image}                Multi-band image containing ancillary layers
+*/ 
+var getExtraBands = function(options){
+  var dem = (options && options.dem) || null
+  var slope = (options && options.slope) || null
+  var aspect = (options && options.aspect) || null
+
+  var newBands = []
+  
+  if (dem) {
+    var demImage = ee.Image('USGS/SRTMGL1_003')
+    newBands.push(demImage)
+    if (slope) {
+     newBands.push(ee.Terrain.slope(demImage))
+    }
+    if (aspect) {
+      newBands.push(ee.Terrain.aspect(demImage))
+    }
+  }
+  
+  return ee.Image(newBands)}
+
+/**
+* Train and classify CCD coefficents [V1]
+* 
+* @param {ee.Dict}        options       Parameter file containing the keys below
+*   @key {ee.Image}       ccdResults     CCD result coefficients
+*   @key {String}         trainingDate   date that corresponds to training data 
+*   @key {String}         classifyDate   date that corresponds to classification
+*   @key {ee.Classifier}  classifier     classifier with parameters included
+*   @key {ee.FC}          trainingData   training data with class identifier in attribute
+*   @key {ee.String}      trainingLabel  attribute corresponding to training label
+*   @key {List}           coefs          list of coefficients to use for training
+*   @key {List}           bands          bands to use for classification
+*   @key {Dictionary}     extraBands     ancillary data to use for classification
+*   @key {Number}         trainScale     spatial resolution for calculating training data
+* 
+* 
+* @returns {ee.Image}       classified  classified image
+*  
+*/
+var trainAndClassify = function(options) {
+  
+  var results = (options && options.results) || null
+  var trainDate = (options && options.trainDate) || null
+  var classifyDate = (options && options.classifyDate) || null
+  var trainingData = (options && options.trainingData) || null
+  var classifier = (options && options.classifier) || ee.Classifier.randomForest(100)
+  var label = (options && options.label) || 'label'
+  var coefs = (options && options.coefs) || ['INTP','SLP','COS','SIN','COS2','SIN2','COS3','SIN3'] // Default
+  var bands = (options && options.bands) || [1, 2, 3, 4, 5, 6, 7] // Default
+  var trainScale = (options && options.trainScale) || 30
+  var extraBands = (options && options.extraBands) || null
+
+  if (!results) {
+    return('Required parameter [results] missing')
+  }
+  else if (!trainDate) {
+    return('Required parameter [trainDate] missing')
+  }
+  else if (!classifyDate) {
+    return('Required parameter [classifyDate] missing')
+  }
+  else if (!trainingData) {
+    return('Required parameter [trainingData] missing')
+  }
+
+  coefs = ee.List(coefs)
+  bands = ee.List(bands)
+  trainingData = ee.FeatureCollection(trainingData)
+  // // TODO: specify what time unit your data is in
+  // // and chose the righ function
+  // trainDate = date_to_days({str_date: trainDate})
+  // classifyDate = date_to_days({str_date: classifyDate})
+  
+  // For now, getting training data from results
+  var trainingCoefs = ee.Image(getBandsAtDate({fullImage: results,
+                                                 date: trainDate,
+                                                 coefNames: coefs}))
+
+    // Get coefficients for classification
+  var multiCoefs = ee.Image(getBandsAtDate({fullImage: results,
+                                   date: classifyDate,
+                                   coefNames: coefs}))
+  
+  // if (extraBands) {
+  //   extraBands = getExtraBands(extraBands)
+  //   trainingCoefs = trainingCoefs.addBands(extraBands)
+  //   multiCoefs = multiCoefs.addBands(extraBands)
+  // }                                 
+  // var extraBandArr =[extraBands.dem, extraBands.slope, extraBands.aspect]   
+  
+  // if (extraBandArr.some(function(i) {return i})) {
+  //   extraBands = getExtraBands(extraBands)
+  //   trainingCoefs = trainingCoefs.addBands(extraBands)
+  //   multiCoefs = multiCoefs.addBands(extraBands)
+  // }
+
+      
+  // Extract coefficients at training locations
+  var trainingFeatures = trainingCoefs.sampleRegions({
+    collection: trainingData,
+    properties: [label],
+    scale: trainScale,
+    tileScale: 16 // Hard coded
+  });
+    
+  // Train the classifier
+  var classifierTrained = classifier.train({
+    features: trainingFeatures,
+    classProperty: label,
+    inputProperties: multiCoefs.bandNames()
+  })
+
+  
+  // Run the classification
+  var classified = ee.Image(multiCoefs)
+    .select(multiCoefs.bandNames())
+    .classify(classifierTrained)
+    .toInt8()
+    
+  return classified
+                               
+                                  
+}
+
+
+
+
+/**
+* Get coefficients from training data locations
+* 
+* @param {ee.Dict}        options         Parameter file containing the keys below
+*   @key   {String}       start           First date to filter images
+*   @key   {String}       end             Last date to filter images
+* 
+* 
+* @returns                ee.ImageCol.    Masked image collection with L4, L5, L7, and L8
+*/
+var getTraining = function(options) {
+  var trainingData = (options && options.trainingData) || null
+  var bands = (options && options.trainingData) || null
+  var ccdcParams = (options && options.ccdcParams) || null
+  var extraBands = (options && options.extraBands) || null
+  var landsatParams = (options && options.landsatParams) || {}
+  trainingData = ee.FeatureCollection(trainingData)
+  var inputs = getLandsat(landsatParams)
+  if (!ccdcParams) {
+    ccdcParams = {collection: inputs}
+  }
+  var ccdc = ee.Algorithms.TemporalSegmentation.Ccdc(ccdcParams)
+  var sampleCoefs = ccdc.sampleRegions({
+    collection: trainingData,
+    scale: 30,
+    tileScale: 16,
+    geometries: true
+  })
+
+  if (extraBands) {
+    sampleCoefs = ee.Image(extraBands).sampleRegions({
+      collection: sampleCoefs,
+      scale: 30,
+      tileScale: 16,
+    geometries: true
+  })
+  }
+  return sampleCoefs
+  
+}
+
+
+
+
+/**
+* Get coefficients at a given date for each feature in collection
+* 
+* @param {ee.Dict}        options         Parameter file containing the keys below
+*   @key {ee.FC}          trainingData    training data with ccdc outputs saved in properties in addition to a date property
+*   @key {List}           bandList        list of input band names in order
+*   @key {List}           coefNames       coefficient abbreviated names in order of results
+*   @key {String}         dateProperty    property name containing date in features
+* 
+* @returns                ee.FC           training data with coefficients corresponding to specific date
+*  
+*/
+var getTrainingCoefsAtDate = function(options) {
+   
+  var trainingData = (options && options.trainingData) || null
+  var coefNames = (options && options.coefNames) ||  ['INTP','SLP','COS','SIN','COS2','SIN2','COS3','SIN3']
+  var bandList = (options && options.bandList) || ['BLUE','GREEN','RED','NIR','SWIR1','SWIR2']
+  var dateProperty = (options && options.dateProperty) || 'Start_Year'
+  var extraBands = (options && options.extraBands) || null
+
+  bandList = ee.List(bandList)
+  coefNames = ee.List(coefNames)
+
+  var trainingCCDC = getTraining({trainingData: trainingData, extraBands: extraBands})
+
+  return trainingCCDC.map(function(feat) { 
+    
+    var date = ee.Number(feat.get(dateProperty))
+    var coefs = ee.Array(feat.get('coefs'))
+    var rmses = ee.Array(feat.get('rmse'))
+    var tStart = ee.Array(feat.get('tStart'))
+    var tEnd = ee.Array(feat.get('tEnd'))
+    
+    // Make mask where 1 = feat intersecting date and 0 = not intersecting
+    var maskList = tStart.lte(date).and(tEnd.gt(date)).get([0])
+    var mask = ee.List([maskList]).indexOf(1)
+  
+    // Subtract 1 because we are indexing on 0
+    var numBands = bandList.length().subtract(1)
+    var numCoefs = coefNames.length().subtract(1)
+    
+    var bandSequence = ee.List.sequence(0, numBands)
+    var coefSequence = ee.List.sequence(0, numCoefs)
+    
+    // Generate names that correspond to the band and rmse
+    var rmseNames = ee.List.sequence(0, numBands).map(function(r) {
+        return ee.String(bandList.get(r)).cat('_RMSE')
+      })
+  
+    // Get the coefficients and RMSE according to mask index
+    var coefsFiltered = ee.List(coefs.toList().get(mask))
+    var rmseFiltered = ee.List(rmses.toList().get(mask))
+    
+    // Make a list of rmse name and value pairs
+    var rmseList = ee.List.sequence(0, numBands).map(function(r) {
+     return [rmseNames.get(r), rmseFiltered.get(r)] 
+    }).flatten()
+    var rmseDict = ee.Dictionary(rmseList)
+    
+    // Map over bands to get coefficients
+    var coefValues = bandSequence.map(function(i) {
+      var bandIndex = ee.Number(i).toLong() 
+  
+      // Generate names that correspond to the band and each coefficient
+      var thisBandsCoefs = ee.List.sequence(0, numCoefs).map(function(r) {
+        var coefIndex = ee.Number(r).toLong()
+        var bandName = ee.String(bandList.get(bandIndex)).cat('_COEF_').cat(ee.String(coefNames.get(coefIndex)))
+        var thisBandsCoef = ee.List(coefsFiltered.get(bandIndex)).get(coefIndex)
+  
+        return [bandName, thisBandsCoef]
+      })
+      return thisBandsCoefs
+     }).flatten()
+     
+     var coefDict = ee.Dictionary(coefValues)
+  
+     // If there was an intersecting model, return feature with coefficients and rmse
+     var featToReturn = ee.Algorithms.If(mask.neq(-1), 
+       feat.setMulti(rmseDict.combine(coefDict)),
+       feat)
+     return featToReturn
+  })
+}
+
+/**
+ * Convert training data to binary label for target class
+ * 
+ * @param {ee.Dict}      option        Parameter file containing the keys below
+*   @key   {ee.FC}       fc            Training data feature collection
+*   @key   {String}      property      Property label indicating class label
+*   @key   {Number}      targetClass   Class to retain as 1 in binary label
+* 
+* @returns {ee.FC}                     Training data where 1 = targetClass and 0 equals all other classes
+*/
+
+var getBinaryLabel = function(options) {
+  
+  var fc = (options && options.fc) || null
+  var property = (options && options.property) || 'label'
+  var targetClass = (options && options.targetClass) || null
+  
+  if (!fc) {
+    return('Required argument [fc] missing.')
+  }
+  if (!targetClass) {
+    return('Required argument [targetClass] missing.')
+  }
+  
+  fc = ee.FeatureCollection(fc)
+  
+  
+  var targetFc = fc.filterMetadata(property,'equals',targetClass).map(function(i) {
+    return i.set(property, 1)
+  })
+  var notTargetFc = fc.filterMetadata(property,'not_equals',targetClass).map(function(i) {
+    return i.set(property, 0)
+  })
+  
+  return targetFc.merge(notTargetFc)
+}
+
+
+/**
+ * Get class probability for each class in training data
+ * 
+ * @param {dictionary}        options           parameter file
+ * @key   {ee.Image}          coefsToClassify   multi-band image of coefficients to classify
+ * @key   {list}              classList         classes to test probability of
+ * @key   {ee.FC}             fc                feature collection of training data
+ * @key   {ee.Classifier}     classifier        classifier in 'PROBABILITY' mode
+ * @key   {string}            property          label defining class in training data
+ * 
+ * @returns {ee.Image}                          image with each band being class probability for each input class
+ */
+ 
+var getClassProbs = function(options) {
+  var fc = (options && options.fc) || null
+  var coefsToClassify = (options && options.coefsToClassify) || null
+  var classList = (options && options.classList) || null
+  var classifier = (options && options.classifier) || null
+  var property = (options && options.property) || 'lc_class_c'
+  
+  if (!coefsToClassify) {
+    return('Required parameter [coefsToClassify] missing')
+  }
+  
+  if (!classList) {
+    return('Required parameter [classList] missing')
+  }
+  if (!classifier) {
+    return('Required parameter [classifier] missing')
+  }
+  if (!fc) {
+    return('Required parameter [fc] missing')
+  }
+  var bandNames = classList.map(function(num) {
+    return ee.String('probability_').cat(ee.String(num))
+  })
+  var classProbs = classList.map(function(num) {
+    var fcBinary = getBinaryLabel({fc:fc, property: property, targetClass: num})
+    var trained = classifier.train({
+        features: fcBinary,
+        classProperty: property,
+        inputProperties: coefsToClassify.bandNames()
+      })
+    return coefsToClassify.classify(trained)//.rename(ee.String('probability_').cat(ee.String(num)))
+    
+  })
+  return ee.ImageCollection(ee.List(classProbs)).toBands().rename(bandNames)
+}
+
+
+
+
+
+var classUtils = {
+  getTraining: getTraining,
+  trainAndClassify: trainAndClassify,
+  getExtraBands: getExtraBands,
+  getBinaryLabel: getBinaryLabel,
+  getTrainingCoefsAtDate: getTrainingCoefsAtDate,
+  getClassProbs: getClassProbs
+
+}
+
+
+
+
+
+
+
+
+/** ///////////////////////////////////////////////////////////////////
+ * 
+ * Utility functions for creating spatial grids
+ * 
+ ** /////////////////////////////////////////////////////////////////*/
+
+
+/**
+ * Create a grid with features corresponding to latitudinal strips
+ * 
+ * @param {Dictionary}     options       parameter file
+ * @key   {Number}         minY          minimum latititude coordinate
+ * @key   {Number}         maxY          maximum latititude coordinate
+ * @key   {Number}         minX          minimum longitude coordinate
+ * @key   {Number}         minX          maximum longitude coordinate
+ * @key   {Number}         size          size of features in units of latitudinal degrees
+ * 
+ * @returns {ee.FC}                      grid of features along latitudinal lines
+*/
+var makeLatGrid = function(minY, maxY, minX, maxX, size) {
+
+  var ySeq = ee.List.sequence(minY, maxY, size)
+  var numFeats = ySeq.length().subtract(2)
+  var feats = ee.List.sequence(0, numFeats).map(function(num) {
+    num = ee.Number(num)
+    var num2 = num.add(1)
+    var y1 = ee.Number(ySeq.get(num))
+    var y2 = ee.Number(ySeq.get(num2))
+    var feat = ee.Feature(ee.Geometry.Polygon([[maxX, y2], [minX, y2], [minX, y1], [maxX, y1]]))
+    return feat
+  })
+  return ee.FeatureCollection(feats)
+}
+
+
+
+/**
+ * Create a grid with features corresponding to longitudinal strips
+ * 
+ * @param {Dictionary}     options       parameter file
+ * @key   {Number}         minY          minimum latititude coordinate
+ * @key   {Number}         maxY          maximum latititude coordinate
+ * @key   {Number}         minX          minimum longitude coordinate
+ * @key   {Number}         minX          maximum longitude coordinate
+ * @key   {Number}         size          size of features in units of latitudinal degrees
+ * 
+ * @returns {ee.FC}                      grid of features along longitudinal lines
+*/
+var makeLonGrid = function(minY, maxY, minX, maxX, size) {
+
+  var ySeq = ee.List.sequence(minX, maxX, size)
+  var numFeats = ySeq.length().subtract(2)
+  var feats = ee.List.sequence(0, numFeats).map(function(num) {
+    num = ee.Number(num)
+    var num2 = num.add(1)
+    var x1 = ee.Number(ySeq.get(num))
+    var x2 = ee.Number(ySeq.get(num2))
+    var feat = ee.Feature(ee.Geometry.Polygon([[x2, maxY], [x1, maxY], [x1, minY], [x2, minY]]))
+    return feat
+  })
+  return ee.FeatureCollection(feats)
+}
+
+/**
+ * Create a grid with features corresponding to longitudinal strips
+ * 
+ * @param {Dictionary}     options       parameter file
+ * @key   {Number}         minY          minimum latititude coordinate
+ * @key   {Number}         maxY          maximum latititude coordinate
+ * @key   {Number}         minX          minimum longitude coordinate
+ * @key   {Number}         minX          maximum longitude coordinate
+ * @key   {Number}         size          size of features in units of latitudinal degrees
+ * 
+ * @returns {ee.FC}                      grid of features along longitudinal lines
+*/
+var makeLonLatGrid = function(minY, maxY, minX, maxX, size) {
+
+  var xSeq = ee.List.sequence(minX, maxX, size)
+  var ySeq = ee.List.sequence(minY, maxY, size)
+  
+  var numFeatsY = ySeq.length().subtract(2)
+  var numFeatsX = xSeq.length().subtract(2)
+
+  var feats = ee.List.sequence(0, numFeatsY).map(function(y) {
+    y = ee.Number(y)
+    var y2 = y.add(1)
+    var y1_val = ee.Number(ySeq.get(y))
+    var y2_val = ee.Number(ySeq.get(y2))
+    var feat = ee.List.sequence(0, numFeatsX).map(function(x) {
+      x = ee.Number(x)
+      var x2 = x.add(1)
+      var x1_val = ee.Number(xSeq.get(x))
+      var x2_val = ee.Number(xSeq.get(x2))
+      return ee.Feature(ee.Geometry.Polygon([[x2_val, y2_val], [x1_val, y2_val], [x1_val, y1_val], [x2_val, y1_val]]))
+    })
+    return feat
+   
+  })
+  return ee.FeatureCollection(feats.flatten())
+}
+
+
+var grids = {
+  makeLatGrid: makeLatGrid,
+  makeLonGrid: makeLonGrid,
+  makeLonLatGrid: makeLonLatGrid
+}
+
+
+
+
+
+exports = {
+  inputs: inputUtils,
+  outputs: outputUtils,
+  classification: classUtils,
+  dates: dateUtils,
+  grids: grids
+}
+
+
+
+
+
+
+
+
+// Tests
+
+var test =  makeLonLatGrid(20, 55, -130, -60, 10) 
+
+// var testPrism = getPrism({startDate: '2010-01-01',endDate: '2011-01-01'})
+// print(testPrism)
+
+
+var coef2010 = getCoefsAtDate({fullImage: image,
+  date: dateToJdays('2010-01-01').toLong()
+})
+
+print(coef2010)

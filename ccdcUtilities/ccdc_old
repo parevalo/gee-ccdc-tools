@@ -1,0 +1,586 @@
+/** ///////////////////////////////////////////////////////////////////
+ * 
+ * Utility functions for filtering and modifying CCD output
+ * 
+ ** /////////////////////////////////////////////////////////////////*/
+ 
+
+/**
+* Create sequence of segment strings
+* @param {Integer} nSegments Number of segments to create labels for
+* @returns {ee.List) List of segment names (e.g. S1, S2)
+*/
+var buildSegmentTag = function(nSegments) {
+  return ee.List.sequence(1, nSegments).map(function(i) {
+    return ee.String('S').cat(ee.Number(i).int())
+  })
+}
+
+
+/**
+* Create sequence of band names for a given string tag
+* @param {string} tag String tag to use (e.g. 'RMSE')
+* @param {array} bandList List of band names to combine with tag
+* @returns {ee.List) List of band names combined with tag name
+*/
+var buildBandTag = function(tag, bandList) {
+  var bands = ee.List(bandList)
+  return bands.map(function(s) {
+    return ee.String(s).cat('_' + tag)
+  })
+}
+
+
+/**
+* Extract CCDC magnitude image
+* @param {ee.Image} fit Image with CCD results
+* @param {number} nSegments Number of segments to extract
+* @param {array} bandList  Client-side list with band names to use
+* @returns {ee.Image) Image with magnitude of change per segment per band 
+*/
+var buildMagnitude = function(fit, nSegments, bandList) {
+  var segmentTag = buildSegmentTag(nSegments)
+  var magTag = buildBandTag('MAG', bandList)
+  var nBands = bandList.length
+  var zeros = ee.Image(ee.Array([ee.List.repeat(0, nBands)]).repeat(0, nSegments))
+  var magImg =fit.select('magnitude').arrayCat(zeros, 0).float().arraySlice(0, 0, nSegments)
+  return magImg.arrayFlatten([segmentTag, magTag])
+}
+
+/**
+* Extract CCDC magnitude image from current CCDC result format
+* @param {ee.Image} fit Image with CCD results
+* @param {number} nSegments Number of segments to extract
+* @param {array} bandList  Client-side list with band names to use
+* @returns {ee.Image) Image with magnitude of change per segment per band 
+*/
+var newBuildMagnitude = function(fit, nSegments, bandList){
+  var segmentTag = buildSegmentTag(nSegments)
+  var zeros = ee.Image(ee.Array(ee.List.repeat(0, nSegments)))
+  // Pad zeroes for pixels that have less than 6 segments and then slice the first 6 values
+  var retrieveMags = function(band){
+    var magImg = fit.select(band + '_magnitude').arrayCat(zeros, 0).float().arraySlice(0, 0, nSegments)
+    var tags = segmentTag.map(function(x){ return ee.String(x).cat('_').cat(band).cat('_MAG')})
+    return magImg.arrayFlatten([tags])
+  }
+  return ee.Image(bandList.map(retrieveMags))
+}
+
+
+
+/**
+* Extract CCDC RMSE image
+* @param {ee.Image} fit Image with CCDC results
+* @param {number}  nSegments Number of segments to extract
+* @param {array} bandList  Client-side list with band names to use
+* @returns {ee.Image) Image with RMSE of each segment per band
+*/
+var buildRMSE = function(fit, nSegments, bandList) {
+  var segmentTag = buildSegmentTag(nSegments)
+  var magTag = buildBandTag('RMSE', bandList)  
+  var nBands = bandList.length
+  var zeros = ee.Image(ee.Array([ee.List.repeat(0, nBands)]).repeat(0, nSegments))
+  var magImg = fit.select('rmse').arrayCat(zeros, 0).float().arraySlice(0, 0, nSegments)
+
+  return magImg.arrayFlatten([segmentTag, magTag])
+}
+
+/**
+* Extract CCDC RMSE image from current CCDC formatted results
+* @param {ee.Image} fit Image with CCDC results
+* @param {number}  nSegments Number of segments to extract
+* @param {array} bandList  Client-side list with band names to use
+* @returns {ee.Image) Image with RMSE of each segment per band
+*/
+var newBuildRMSE = function(fit, nSegments, bandList){
+  var segmentTag = buildSegmentTag(nSegments)
+  var zeros = ee.Image(ee.Array(ee.List.repeat(0, nSegments)))
+  // Pad zeroes for pixels that have less than 6 segments and then slice the first 6 values
+  var retrieveMags = function(band){
+    var magImg = fit.select(band + '_rmse').arrayCat(zeros, 0).float().arraySlice(0, 0, nSegments)
+    var tags = segmentTag.map(function(x){ return ee.String(x).cat('_').cat(band).cat('_RMSE')})
+    return magImg.arrayFlatten([tags])
+  }
+  return ee.Image(bandList.map(retrieveMags))
+}
+
+
+/**
+* Extract CCDC Coefficients 
+* @param {ee.Image} fit Image with CCD results
+* @param {number} nSegments Number of segments to extract
+* @param {array} bandList  Client-side list with band names to use
+* @returns {ee.Image) Image with coefficients per band
+*/
+var buildCoefs = function(fit, nSegments, bandList) {
+  var nBands = bandList.length
+  var segmentTag = buildSegmentTag(nSegments)
+  var magTag = buildBandTag('coef', bandList)
+  var harmonicTag = ['INTP','SLP','COS','SIN','COS2','SIN2','COS3','SIN3']
+  
+  var zeros = ee.Array([ee.Array([ee.List.repeat(0, harmonicTag.length)]).repeat(0, nBands).toList()])
+  var magImg = fit.select('coefs').arrayCat(zeros.repeat(0, nSegments), 0).float().arraySlice(0, 0, nSegments)
+  
+  return magImg.arrayFlatten([segmentTag, magTag, harmonicTag])
+}
+
+/**
+* Extract CCDC Coefficients from current CCDC formatted result
+* @param {ee.Image} fit Image with CCD results
+* @param {number} nSegments Number of segments to extract
+* @param {array} bandList  Client-side list with band names to use
+* @returns {ee.Image) Image with coefficients per band
+*/
+var newBuildCoefs = function(fit, nSegments, bandList) {
+  var nBands = bandList.length
+  var segmentTag = buildSegmentTag(nSegments)
+  var bandTag = buildBandTag('coef', bandList)
+  var harmonicTag = ['INTP','SLP','COS','SIN','COS2','SIN2','COS3','SIN3']
+  
+  var zeros = ee.Image(ee.Array([ee.List.repeat(0, harmonicTag.length)])).arrayRepeat(0, nSegments)
+  var retrieveCoefs = function(band){
+    var coefImg = fit.select(band + '_coefs').arrayCat(zeros, 0).float().arraySlice(0, 0, nSegments)
+    var tags = segmentTag.map(function(x){ return ee.String(x).cat('_').cat(band).cat('_coef')})
+    return coefImg.arrayFlatten([tags, harmonicTag])
+  }
+  return ee.Image(bandList.map(retrieveCoefs))
+}
+
+
+
+/**
+* Extract CCDC tStart, tEnd, tBreak, changeProb
+* @param {ee.Image} fit Image with CCD results
+* @param {integer} nSegments Number of segments to extract
+* @param {string} tag Client-side string to use as name in the output bands
+* @returns {ee.Image) Image with values for tStart, tEnd, tBreak or changeProb
+*/
+var buildStartEndBreakProb = function(fit, nSegments, tag) {
+  var segmentTag = buildSegmentTag(nSegments).map(function(s) {
+    return ee.String(s).cat('_'+tag)
+  })
+  
+  var zeros = ee.Array(0).repeat(0, nSegments)
+                       
+  var magImg = fit.select(tag).arrayCat(zeros, 0).float().arraySlice(0, 0, nSegments)
+
+  return magImg.arrayFlatten([segmentTag])
+}
+
+/**
+* build a 74 x nSegments CCDC image using int32 as output.
+* @param {ee.Image} fit Image with CCD results
+* @param {number} nSegments Number of segments to extract
+* @param {array} bandList Client-side list with band names to use
+* @returns {ee.Image) Image with all results from CCD in 'long' image format
+*/
+var buildCcdcImage = function(fit, nSegments, bandList) {
+  var magnitude = buildMagnitude(fit, nSegments, bandList)
+  var rmse = buildRMSE(fit, nSegments, bandList)
+
+  var coef = buildCoefs(fit, nSegments, bandList)
+  var tStart = buildStartEndBreakProb(fit, nSegments, 'tStart')
+  var tEnd = buildStartEndBreakProb(fit, nSegments, 'tEnd')
+  var tBreak = buildStartEndBreakProb(fit, nSegments, 'tBreak')
+  var probs = buildStartEndBreakProb(fit, nSegments, 'changeProb')
+  return ee.Image.cat(coef, rmse, magnitude, tStart, tEnd, tBreak, probs)
+}
+
+/**
+* build a 74 x nSegments CCDC image using int32 as output.
+* Assumes current CCDC format
+* @param {ee.Image} fit Image with CCD results
+* @param {number} nSegments Number of segments to extract
+* @param {array} bandList Client-side list with band names to use
+* @returns {ee.Image) Image with all results from CCD in 'long' image format
+*/
+var newBuildCcdcImage = function(fit, nSegments, bandList) {
+  var magnitude = newBuildMagnitude(fit, nSegments, bandList)
+  var rmse = newBuildRMSE(fit, nSegments, bandList)
+
+  var coef = newBuildCoefs(fit, nSegments, bandList)
+  var tStart = buildStartEndBreakProb(fit, nSegments, 'tStart')
+  var tEnd = buildStartEndBreakProb(fit, nSegments, 'tEnd')
+  var tBreak = buildStartEndBreakProb(fit, nSegments, 'tBreak')
+  var probs = buildStartEndBreakProb(fit, nSegments, 'changeProb')
+  return ee.Image.cat(coef, rmse, magnitude, tStart, tEnd, tBreak, probs)
+}
+
+
+/**
+* Create synthetic image for specified band
+* @param {ee.Image} image Image with CCD results in long multi-band format
+* @param {number} date Date to extract the segments for, in the format that ccd was run in
+* @param {number} dateFormat Date format code
+* @param {string} band Band name to use for creation of synthetic image
+* @paramg {array} segs List of segment names to use. 
+* @returns {ee.Image) Synthetic image for the given date and band
+*/
+var getSyntheticForYear = function(image, date, dateFormat, band, segs) {
+  var tfit = date
+  var PI2 = 2.0 * Math.PI
+  var OMEGAS = [PI2 / 365.25, PI2, PI2 / (1000 * 60 * 60 * 24 * 365.25)]
+  var omega = OMEGAS[dateFormat];
+  var imageT = ee.Image.constant([1, tfit,
+                                tfit.multiply(omega).cos(),
+                                tfit.multiply(omega).sin(),
+                                tfit.multiply(omega * 2).cos(),
+                                tfit.multiply(omega * 2).sin(),
+                                tfit.multiply(omega * 3).cos(),
+                                tfit.multiply(omega * 3).sin()]).float()
+                                
+  // OLD CODE
+  // Casting as ee string allows using this function to be mapped
+  // var selectString = ee.String('.*' + band + '_coef.*')
+  // var params = getSegmentParamsForYear(image, date) 
+  //                       .select(selectString)
+  // return imageT.multiply(params).reduce('sum').rename(band)
+                        
+  // Use new standard functions instead
+  var COEFS = ["INTP", "SLP", "COS", "SIN", "COS2", "SIN2", "COS3", "SIN3"]
+  var newparams = get_multi_coefs(image, date, [band], COEFS, false, segs, 'before')
+  return imageT.multiply(newparams).reduce('sum').rename(band)
+  
+}
+
+/**
+* Create synthetic image for a list of bands
+* @param {ee.Image} image Image with CCD results in long multi-band format
+* @param {number} date Date to extract the segments for, in the format that ccd was run in
+* @param {array} band List of bands to get synthetic data for
+* @paramg {array} segs List of segment names to use. 
+* @returns {ee.Image) Synthethic image for the given date and bands
+*/
+var getMultiSynthetic = function(image, date, dateFormat, bandList, segs){
+  var retrieveSynthetic = function(band){
+    return getSyntheticForYear(image, date, dateFormat, band, segs)
+  }
+  
+  return ee.Image.cat(bandList.map(retrieveSynthetic))
+}
+
+
+/**
+* Replace nodata in CCD output and fill with zeros
+* @param {ee.Image} fit Image with CCD results
+* @param {number} nCoefs Number of coefficients present in the results
+* @param {number} nBands Number of spectral bands used to produce the results
+* @param {ee.Geometry} clipGeom Geometry of the image that is being masked
+* @returns {ee.Image) Image with nodata areas replaced with zeros
+*/
+var fillNoData = function(fit, nCoefs, nBands, clipGeom){
+  var d1 = ee.Image(ee.Array([0])).double()
+  var d2 = ee.Image(ee.Array([ee.List.repeat(0, nBands)])).double() 
+  var d3 = ee.Image(ee.Array([ee.Array([ee.List.repeat(0, nCoefs)]).repeat(0, nBands).toList()])).double()
+  // TODO: Check if updating mask instead of clipping also works.
+  var mock = ee.Image([d1, d1, d1, d3, d2, d1, d1.int32(), d2]).rename(fit.bandNames()).clip(clipGeom)
+  var newimage = ee.ImageCollection([mock, fit]).mosaic()
+  return newimage
+  
+}
+
+/**
+* Replace nodata in CCD output and fill with zeros
+* Assumes current CCDC result format
+* @param {ee.Image} fit Image with CCD results
+* @param {number} nCoefs Number of coefficients present in the results
+* @param {number} nBands Number of spectral bands used to produce the results
+* @param {ee.Geometry} clipGeom Geometry of the image that is being masked
+* @returns {ee.Image) Image with nodata areas replaced with zeros
+*/
+var newFillNoData = function(fit, nCoefs, nBands){
+  var d1 = ee.Image(ee.Array([0]).double())
+  var d2 = ee.Image(ee.Array([ee.List.repeat(-9999, nCoefs)])).double() 
+  
+  var upper = ee.Image([d1, d1, d1, d1.int32(), d1])
+  
+  // Create variable number of coef, rmse and change amplitude bands
+  var arrCenter = []
+  var arrBottom = []
+  for (var i = 0; i < nBands; i++) {
+    arrCenter.push(d2)
+    arrBottom.push(d1, d1)
+  } 
+  var center = ee.Image(arrCenter)
+  var bottom = ee.Image(arrBottom)
+  
+  var mock = upper.addBands(center).addBands(bottom).rename(fit.bandNames()).updateMask(fit.mask())
+  var newimage = ee.ImageCollection([mock, fit]).mosaic()
+  return newimage
+  
+}
+
+
+/** 
+ * Return a date as days from 01-01-0000
+ * @param {String} str_date Date in the format accepted by ee.Date
+ * @returns {ee.Number} Date expressed as days since 01-01-0000
+ */ 
+var date_to_days = function(str_date){
+  var date = ee.Date(str_date)
+  // Number of days since 01-01-0000 unti 01-01-1970
+  var epoch = ee.Number(719177)
+  // Convert milis to days
+  var days = ee.Number(date.millis().divide(86400000))
+  return days.add(epoch)
+}
+
+/** 
+ * Find segments that intersect a given date
+ * 
+ * @param {ee.Image}    ccd_results     CCD results in long multi-band format
+ * @param {Number}      date            Date in the format that was used to run CCD 
+ * @paramg {ee.List}    seg_names       Segment names to use. 
+ * @returns {ee.Image}  segment_match   Mask image indicating segments that intersect the given date 
+ */
+var date_to_segment = function(ccd_results, date, seg_names){
+  var start_bands = ccd_results.select(".*_tStart").rename(seg_names)
+  var end_bands = ccd_results.select(".*_tEnd").rename(seg_names)
+  
+  var start = start_bands.lte(date)
+  var end = end_bands.gte(date)
+  
+  var segment_match = start.and(end)
+  return segment_match
+}
+
+/** 
+ * Filter coefficients for a given date using a mask
+ * @param {ee.Image} ccd_results CCD results in long multi-band format
+ * @param {string} date Date in the same format that CCD was run with
+ * @param {string} band Band to select. 
+ * @param {string} coef Coef to select. Options are "INTP", "SLP", "COS", "SIN", "COS2", 
+                                  "SIN2", "COS3", "SIN3", "RMSE", "MAG"
+ * @paramg {ee.List} seg_names List of segment names to use. 
+ * @param {String} behavior Method to find intersecting ('normal') or closest
+ *                                segment to given date ('before' or 'after') if no segment
+ *                                intersects directly
+ * @returns {ee.Image} Single band image with the values for the selected band/coefficient
+ */
+var filter_coefs = function(ccd_results, date, band, coef, seg_names, behavior){
+  // OLD CODE
+  // var seg_mask = date_to_segment(ccd_results, date, seg_names)
+  // var sel_str = ".*".concat(band).concat(".*").concat(coef) // Client side concat
+  // var coef_bands = ccd_results.select(sel_str)
+  // var filtered_coef = coef_bands.mask(seg_mask)
+  // return filtered_coef.reduce(ee.Reducer.max())
+  
+  // NEW CODE
+  // var behavior = 'normal'
+
+  var start_bands = ccd_results.select(".*_tStart").rename(seg_names)
+  var end_bands = ccd_results.select(".*_tEnd").rename(seg_names)
+  
+  // Get all segments for a given band/coef
+  var sel_str = ".*".concat(band).concat(".*").concat(coef) // Client side concat
+  var coef_bands = ccd_results.select(sel_str)
+  
+  // Select a segment based on conditions
+  if (behavior == "normal"){
+    var start = start_bands.lte(date)
+    var end = end_bands.gte(date)
+    var segment_match = start.and(end)
+    var outCoef = coef_bands.updateMask(segment_match).reduce(ee.Reducer.firstNonNull())
+    
+  } else if (behavior == "after"){
+    var segment_match = end_bands.gt(date)
+    var outCoef = coef_bands.updateMask(segment_match).reduce(ee.Reducer.firstNonNull())
+    
+  } else if (behavior ==  "before"){
+    // Mask start to avoid comparing against zero, mask after to remove zeros from logical comparison
+    var segment_match = start_bands.selfMask().lt(date).selfMask()
+    var outCoef =  coef_bands.updateMask(segment_match).reduce(ee.Reducer.lastNonNull())
+  } 
+  
+  // TODO: Add a after, then before behavior
+  return outCoef
+  
+}
+
+
+
+/** 
+ * Normalize the intercept to the middle of the segment time period, instead
+ * of the 0 time period.
+ * @param {ee.Image} intercept Image band representing model intercept
+ * @param {ee.Image} start Image band representing model slope date
+ * @param {ee.Image} end Image band representing model end date
+ * @param {ee.Image} slope Image band representing model slope
+ * @returns {ee.Image} Image band representing normalized intercept.
+ */ 
+var normalizeIntercept = function(intercept, start, end, slope) {
+  var middleDate = ee.Image(start).add(ee.Image(end)).divide(2)
+  var slopeCoef = ee.Image(slope).multiply(middleDate)
+  return ee.Image(intercept).add(slopeCoef)
+}
+
+
+
+
+/** 
+ * Get image of with a single coefficient for all bands
+ * @param {ee.Image} ccd results CCD results in long multi-band format
+ * @param {string} date Date in the same format that CCD was run with
+ * @param {array} band_list List of all bands to include. 
+ * @param {array} coef Coef to select. Options are "INTP", "SLP", "COS", "SIN", "COS2", 
+ *                                    "SIN2", "COS3", "SIN3", "RMSE", "MAG"
+ * @paramg {ee.List} seg_names List of segment names to use. 
+ * @param {string} behavior Method to find intersecting ('normal') or closest
+ *                                    segment to given date ('before' or 'after') if no segment
+ *                                    intersects directly
+ * @returns {ee.Image} coefs Image with the values for the selected bands x coefficient
+ */
+var get_coef = function(ccd_results, date, band_list, coef, seg_names, behavior){
+  var inner = function(band){
+    var band_coef = filter_coefs(ccd_results, date, band, coef, seg_names, behavior)
+    return band_coef.rename(band.concat("_").concat(coef)) // Client side concat
+  }
+  var coefs = ee.Image(band_list.map(inner)) // Client side map
+  return coefs
+}
+
+
+
+/**
+ * Apply normalization to intercepts
+ * @param {ee.Image} band_coefs Band x coefficients image. Must include slopes
+ * @param {ee.Image} seg_start Image with dates representing the start of the segment 
+ * @param {ee.Image} seg_end Image with dates representing the end of the segment
+ * @returns {ee.Image} band_coefs Updated input image with normalized intercepts
+ */
+var apply_norm = function(band_coefs, seg_start, seg_end){
+  var intercepts = band_coefs.select(".*INTP")
+  var slopes = band_coefs.select(".*SLP")
+  var normalized = normalizeIntercept(intercepts, seg_start, seg_end, slopes)
+  return band_coefs.addBands({srcImg:normalized, overwrite:true})
+}
+
+
+/**
+ * Get image of with bands x coefficients given in a list
+ * @param {ee.Image} ccd results CCD results in long multi-band format
+ * @param {string} date Date in the same format that CCD was run with
+ * @param {array} band_list List of all bands to include. Options are "B1", "B2", "B3", "B4", "B5", "B6", "B7"
+ * @param {list} coef_list List of coefs to select. Options are "INTP", "SLP", "COS", "SIN", "COS2", 
+ *                                    "SIN2", "COS3", "SIN3", "RMSE", "MAG"
+ * @param {boolean} cond Normalize intercepts? If true, requires "INTP" and "SLP" to be selected
+ *                                    in coef_list.
+ * @param {ee.List} seg_names List of segment names to use.
+ * @param {string} behavior Method to find intersecting ('normal') or closest
+ *                                    segment to given date ('before' or 'after') if no segment
+ *                                    intersects directly
+ * @returns {ee.Image} coefs Image with the values for the selected bands x coefficients
+ */
+var get_multi_coefs = function(ccd_results, date, band_list, coef_list, cond, seg_names, behavior){
+  // Non normalized
+  var inner = function(coef){
+    var inner_coef = get_coef(ccd_results, date, band_list, coef, seg_names, behavior)
+    return inner_coef
+  }
+
+  var coefs = ee.Image(coef_list.map(inner))
+
+  // Normalized
+  var seg_start = filter_coefs(ccd_results, date, "","tStart", seg_names, behavior)
+  var seg_end = filter_coefs(ccd_results, date, "","tEnd", seg_names, behavior)
+  var norm_coefs = apply_norm(coefs, seg_start, seg_end)
+  
+  var out_coefs = ee.Algorithms.If(cond, norm_coefs, coefs)
+  return ee.Image(out_coefs)
+}
+
+
+
+/**
+ * Filter segments with change in a given range
+ * @param {ee.Image} ccd results CCD results in long multi-band format
+ * @param {Number} startDate Start date in the format that was used to run CCD 
+ * @param {Number} endDate End date in the format that was used to run CCD 
+ * @param {ee.List} seg_names List of segment names matching the number of segments in the bands
+ * @returns {ee.Image}                 Mask image indicating which pixel/segments have changes in the 
+ *                                    specified time range.
+**/
+var getChanges = function(ccd_results, startDate, endDate, seg_names){
+  var break_bands = ccd_results.select(".*_tBreak").rename(seg_names)
+  var segment_match = break_bands.gte(startDate).and(break_bands.lt(endDate))
+  return segment_match
+}
+
+/**
+ * Obtain change with largest magnitude, timing of that break, and total number of breaks 
+ * for a given date range and band
+ * @param {ee.Image} ccd results CCD results in long multi-band format
+ * @param {number} startDate Start date in the format that was used to run CCD 
+ * @param {sumber} endDate End date in the format that was used to run CCD 
+ * @param {string} band Spectral band
+ * @param {ee.List} seg_names List of segment names matching the number of segments in the bands
+ * @returns {ee.Image} Image with three bands indicating:
+ *                     1) Magnitude of the largest break for the given date range
+ *                     2) Timing of largest break (in the time units CCDC was run in)
+ *                     3) Total number of breaks in the date range
+**/
+
+var filterMag = function(ccd_results, startDate, endDate, band, seg_names){
+  var seg_mask = getChanges(ccd_results, startDate, endDate, seg_names)
+  var sel_str = ".*".concat(band).concat(".*").concat("MAG") // Client side concat
+  var feat_bands = ccd_results.select(sel_str)
+  var filteredMag = feat_bands.mask(seg_mask).reduce(ee.Reducer.max())
+  var numTbreak = ccd_results.select(".*tBreak").mask(seg_mask).reduce(ee.Reducer.count())
+  var filteredTbreak = ccd_results.select(".*tBreak").mask(seg_mask).reduce(ee.Reducer.max())
+  return filteredMag.addBands(filteredTbreak)
+                    .addBands(numTbreak)
+                    .rename(['MAG', 'tBreak', 'numTbreak'])
+}
+
+/**
+ * Get phase and amplitude for a single spectral band
+ * 
+ * @param {ee.Image} ccd results CCD results in long multi-band format
+ * @param {List} bands List with the name of the bands for which to calculate ampl. and phase
+ * @param {String} sinName Band suffix of the desired sine harmonic coefficient (e.g  '_SIN)
+ * @param {String} cosName Band suffix of the desired sine harmonic coefficient (e.g  '_COS)
+ * @returns{ee.Image} Image with two bands representing phase and amplitude of
+ *                    the desired harmonic
+**/
+var phaseAmplitude = function(img, bands, sinName, cosName){
+    var sinNames = bands.map(function(x){return x.concat(sinName)})
+    var cosNames = bands.map(function(x){return x.concat(cosName)})
+    var phaseNames = bands.map(function(x){return x.concat('_PHASE')})
+    var amplitudeNames = bands.map(function(x){return x.concat('_AMPLITUDE')})
+    var phase =  img.select(sinNames).atan2(img.select(cosNames))
+      // Scale to [0, 1] from radians. 
+      .unitScale(-Math.PI, Math.PI)
+      .multiply(365) // To get phase in days!
+      .rename(phaseNames)
+    
+    var amplitude = img.select(sinNames).hypot(img.select(cosNames)).rename(amplitudeNames)
+    return phase.addBands(amplitude)
+  }
+
+
+exports = {
+  buildSegmentTag: buildSegmentTag,
+  buildBandTag: buildBandTag,
+  buildMagnitude: buildMagnitude,
+  newBuildMagnitude: newBuildMagnitude,
+  buildRMSE: buildRMSE,
+  newBuildRMSE: newBuildRMSE,
+  buildCoefs: buildCoefs,
+  newBuildCoefs: newBuildCoefs,
+  buildStartEndBreakProb: buildStartEndBreakProb,
+  buildCcdcImage: buildCcdcImage,
+  newBuildCcdcImage: newBuildCcdcImage,
+  getSyntheticForYear: getSyntheticForYear,
+  getMultiSynthetic: getMultiSynthetic,
+  fillNoData: fillNoData,
+  newFillNoData: newFillNoData,
+  date_to_days: date_to_days, 
+  filter_coefs: filter_coefs,
+  normalizeIntercept: normalizeIntercept,
+  get_coef: get_coef,
+  apply_norm: apply_norm,
+  get_multi_coefs: get_multi_coefs,
+  getChanges: getChanges,
+  filterMag: filterMag,
+  phaseAmplitude: phaseAmplitude
+}
