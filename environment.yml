@@ -1,0 +1,12 @@
+name: documentation
+channels:
+    - conda-forge
+dependencies:
+    # Base
+    - pip
+    - python>=3.7
+    - pandoc
+    - pip:
+        - sphinx
+        - sphinx-js
+        - sphinx-rtd-theme 
