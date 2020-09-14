@@ -4,8 +4,8 @@
 //
 /////////////////////////////////////////////////////////////////*/
  
-var dateUtils = require('projects/GLANCE:ccdcUtilities/dates.js')
-var ccdcUtils = require('projects/GLANCE:ccdcUtilities/ccdc.js')
+var dateUtils = require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/dates.js')
+var ccdcUtils = require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/ccdc.js')
  
 /**
 * Get Landsat images for a specific region

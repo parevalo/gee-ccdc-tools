@@ -5,10 +5,9 @@
  ** /////////////////////////////////////////////////////////////////*/
 
 // Utility functions for classifying CCDC
-var inputUtils = require('projects/GLANCE:ccdcUtilities/inputs.js')
-var dateUtils = require('projects/GLANCE:ccdcUtilities/dates.js')
-var ccdcUtils = require('projects/GLANCE:ccdcUtilities/ccdc.js')
-var uiUtils = require('projects/GLANCE:ccdcUtilities/ui') 
+var inputUtils = require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/inputs.js')
+var dateUtils = require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/dates.js')
+var ccdcUtils = require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/ccdc.js')
 
 
 /**

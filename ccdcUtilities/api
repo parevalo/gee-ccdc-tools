@@ -19,25 +19,25 @@
  */
 
 var Classification =
-    require('projects/GLANCE:ccdcUtilities/classification.js');
+    require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/classification.js');
 
 var CCDC =
-    require('projects/GLANCE:ccdcUtilities/ccdc.js');
+    require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/ccdc.js');
     
 var Inputs = 
-    require('projects/GLANCE:ccdcUtilities/inputs.js')
+    require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/inputs.js')
 
 var Results = 
-    require('projects/GLANCE:ccdcUtilities/results.js')
+    require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/results.js')
 
 var Terrain = 
-    require('projects/GLANCE:ccdcUtilities/terrain.js')
+    require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/terrain.js')
 
 var Dates = 
-    require('projects/GLANCE:ccdcUtilities/dates.js')
+    require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/dates.js')
 
 var Change = 
-    require('projects/GLANCE:ccdcUtilities/change.js')
+    require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/change.js')
 
 
 exports.Classification = Classification;

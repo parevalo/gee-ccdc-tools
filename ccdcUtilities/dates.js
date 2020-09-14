@@ -1,8 +1,8 @@
 
 /** ///////////////////////////////////////////////////////////////////
  * 
- * Date functions for converting to and from milliseconds since 1970-01-01,
- * fractional dates and julian days since 0001-01-1
+ * Date functions for converting from and to the different date formats
+ * used by the CCCD algorithm
  * 
  ** /////////////////////////////////////////////////////////////////*/
 

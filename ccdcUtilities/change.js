@@ -4,8 +4,8 @@
  * 
  ** /////////////////////////////////////////////////////////////////*/
 
-var dateUtils = require('projects/GLANCE:ccdcUtilities/dates.js')
-var statsUtils = require('projects/GLANCE:ccdcUtilities/stats.js')
+var dateUtils = require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/dates.js')
+var statsUtils = require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/stats.js')
 
 // Add time band and constant
 function createTimeBand(img) {
