@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'GLANCE'
+project = 'gee-ccdc-tools'
 copyright = '2020, Erick Bullock, Paulo Arevalo'
 author = 'Erick Bullock, Paulo Arevalo'
 
@@ -40,7 +40,6 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', '_templates']
 js_source_path = '../ccdcUtilities'
-#js_source_path = '../../GLANCE/ccdcUtilities'
 
 # -- Options for HTML output -------------------------------------------------
 
