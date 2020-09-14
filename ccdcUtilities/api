@@ -27,12 +27,6 @@ var CCDC =
 var Inputs = 
     require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/inputs.js')
 
-var Results = 
-    require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/results.js')
-
-var Terrain = 
-    require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/terrain.js')
-
 var Dates = 
     require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/dates.js')
 
@@ -43,7 +37,5 @@ var Change =
 exports.Classification = Classification;
 exports.CCDC = CCDC
 exports.Inputs = Inputs
-exports.Results = Results
-exports.Terrain = Terrain
 exports.Dates = Dates
 exports.Change = Change
