@@ -275,8 +275,9 @@ function filterCoefs(ccdResults, date, band, coef, segNames, behavior){
   var startBands = ccdResults.select(".*_tStart").rename(segNames)
   var endBands = ccdResults.select(".*_tEnd").rename(segNames)
   
-  // Get all segments for a given band/coef
-  var selStr = ".*".concat(band).concat(".*").concat(coef) // Client side concat
+  // Get all segments for a given band/coef. Underscore in concat ensures
+  // that bands with similar names are not selected twice (e.g. GREEN, GREENNESS)
+  var selStr = ".*".concat(band).concat("_.*").concat(coef) // Client side concat
   var coef_bands = ccdResults.select(selStr)
   
   // Select a segment based on conditions

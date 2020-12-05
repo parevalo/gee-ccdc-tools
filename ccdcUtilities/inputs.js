@@ -642,8 +642,9 @@ function prepareL4L5(image){
   // Gat valid data mask, for pixels without band saturation
   var mask2 = image.select('radsat_qa').eq(0)
   var mask3 = image.select(bandList).reduce(ee.Reducer.min()).gt(0)
-  // Mask hazy pixels
-  var mask4 = image.select("sr_atmos_opacity").lt(300)
+  // Mask hazy pixels. Aggressively filters too many images in arid regions (e.g Egypt)
+  // unless we force include 'nodata' values by unmasking
+  var mask4 = image.select("sr_atmos_opacity").unmask().lt(300)
   return ee.Image(image).addBands(scaled).updateMask(mask1.and(mask2).and(mask3).and(mask4))
 }
 
@@ -663,8 +664,9 @@ function prepareL7(image){
   // Gat valid data mask, for pixels without band saturation
   var mask2 = image.select('radsat_qa').eq(0)
   var mask3 = image.select(bandList).reduce(ee.Reducer.min()).gt(0)
-  // Mask hazy pixels
-  var mask4 = image.select("sr_atmos_opacity").lt(300)
+  // Mask hazy pixels. Aggressively filters too many images in arid regions (e.g Egypt)
+  // unless we force include 'nodata' values by unmasking
+  var mask4 = image.select("sr_atmos_opacity").unmask().lt(300)
   // Slightly erode bands to get rid of artifacts due to scan lines
   var mask5 = ee.Image(image).mask().reduce(ee.Reducer.min()).focal_min(2.5)
   return ee.Image(image).addBands(scaled).updateMask(mask1.and(mask2).and(mask3).and(mask4).and(mask5))
@@ -765,7 +767,6 @@ exports = {
   getAncillary: getAncillary,
   getS2: getS2,
   getS1: getS1,
-  calcNDFI: calcNDFI,
   makeCcdImage: makeCcdImage,
   calcNDVI: calcNDVI,
   calcNBR: calcNBR,

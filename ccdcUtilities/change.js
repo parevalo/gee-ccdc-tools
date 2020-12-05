@@ -32,19 +32,19 @@ function addDependents(image) {
 };
 
 
-
 // Calculated scaled cusum OLS residuals
 function calc_scaled_cusum(resids, critVal){
   // Initialize empty cusum
   var dt = ee.Date(resids.first().get('system:time_start')).advance(-1, 'day').millis()
-  var cs_0 = ee.List([ee.Image(0.1).set('system:time_start', dt)
+  var cs_0 = ee.List([ee.Image(0.0001).set('system:time_start', dt)
   .rename('cusum')])
   
-  // Simple CUSUM function. 
+  // Simple CUSUM function. Unmask images to prevent sum to fail due to masked values.
+  // Unmaked values will have a value of zero and won't affect the calculation
   var cusum_calc = function(image, list){
     var previous = ee.Image(ee.List(list).get(-1))
-    var current_cusum = previous.select('cusum')
-    .add(image)
+    var current_cusum = previous.select('cusum').unmask()
+    .add(image.unmask())
     .set('system:time_start', image.get('system:time_start'))
     return ee.List(list).add(current_cusum.rename('cusum'))
   }
@@ -53,11 +53,12 @@ function calc_scaled_cusum(resids, critVal){
   var cusum = ee.ImageCollection(ee.List(resids.iterate(cusum_calc, cs_0)))
 
   // Scaled cumulative residuals, based on statsmodels (Ploberger, Werner, and Walter Kramer 1992)
-  var nobs = resids.count()
+  var nobs = resids.count() //Count excludes masked vals, which is what we want here
   var nobssigma2 = resids.map(function(x){return x.pow(2)}).sum()
-  var ddof = ee.Number(4) // Harmonic regression terms
-  // var ddof = ee.Number(2) // Only two params to estimate with an linear OLS regression?
+  var ddof = ee.Number(8) // # of Harmonic regression pairs + intp + slope. Automate this calculation
+  // This notation replicates the python opearator order
   nobssigma2 = nobssigma2.divide(nobs.subtract(ddof)).multiply(nobs)
+  
   
   // Actual calculation of scaled CUSUM. Append breakpoint band
   var scaled_resid = cusum.map(function(img){
@@ -78,7 +79,7 @@ function addFracyearBand(img){
 function harmonic_regression(ts_collection, band){
   
   // The number of cycles per year to model and variable name to use
-  var harmonics = 1
+  var harmonics = 3
   var dependent = band
   
   // Make a list of harmonic frequencies to model.

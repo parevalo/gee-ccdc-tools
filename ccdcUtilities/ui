@@ -45,11 +45,31 @@ var getImageRegion = function(mapObj, geometry, date, vizParams) {
     var bandList = [vizParams['red'], vizParams['green'], vizParams['blue']]
     var minList = [vizParams['redMin'], vizParams['greenMin'], vizParams['blueMin']]
     var maxList = [vizParams['redMax'], vizParams['greenMax'], vizParams['blueMax']]
-    // Safer to add a layer instead of setting it to avoid deleting exiting ones
-    mapObj.addLayer(ee.Image(selectedImage), {bands: bandList, min: minList, max: maxList}, obj);
+    // Get current number of layers to add images just below the outline of the clicked pixel, which
+    // should be always on top, but on top of other existing images
+    var numLayers = mapObj.layers().length()
+    var insertIndex = numLayers - 1
+    // Use insert to preserve clicked box on top and shift any other existing bands
+    mapObj.layers().insert(insertIndex, ui.Map.Layer(ee.Image(selectedImage), {bands: bandList, min: minList, max: maxList}, obj))
   })
 }
 
+/**
+* Get Landsat pixel bounds in a given projection
+* @param {ee.Geometry.Point} point A point geometry
+* @param {ee.Projection or EPSG code} projection Projection to use for retrieving the pixel bounds
+* @returns {ee.Geometry} Bounds of the intersecting pixel in the specified projection
+*/
+function getBounds(point, projection){
+  var toProj = ee.Projection(projection).atScale(30)
+  var c1 = point.transform(toProj, 1).coordinates()
+    .map(function(p) {
+      return ee.Number(p).floor()
+    })
+  var c2 = c1.map(function(p) { return ee.Number(p).add(1) })
+  var p2 =  ee.Geometry.LineString([c1, c2], toProj)
+  return p2.bounds()
+}
 
 /**
 * Format time series to make them suitable for the charting, and smooth segments if selected
@@ -232,7 +252,8 @@ var defaultVizParams = {red: 'SWIR1', green: 'NIR', blue: 'RED',
                         blueMin: 0, blueMax: 0.6}
 
 // TODO: doctstring
-function chartCcdc(ccdParams, runParams, vizParams, geometry, panel, latitude, longitude, mapObj){
+function chartCcdc(ccdParams, runParams, vizParams, 
+                    geometry, panel, latitude, longitude, mapObj){
   
   ccdParams = ccdParams || defaultCcdParams
   runParams = runParams || defaultRunParams
@@ -289,6 +310,50 @@ function chartCcdc(ccdParams, runParams, vizParams, geometry, panel, latitude, l
     })
   })
 }  
+
+function chartDOY(runParams, mapObj, geometry, panel, lat, lon){
+  
+  runParams = runParams || defaultRunParams
+  
+  var col = inputUtils.getLandsat(runParams['sDate'], runParams['eDate'], 1, 366, geometry)
+  var ref_image =ee.Image(col.first()) 
+  var bounds = getBounds(geometry, ref_image.projection())
+
+  // High number 'ensures' this layer is added on top unless there's that many layers loaded already
+  mapObj.layers().insert(20, ui.Map.Layer(bounds, {}, 'clicked'))
+  
+  var chart = ui.Chart.image.doySeries({
+    imageCollection: col.select([runParams['bandSelect']]), 
+    region: geometry, 
+    scale: 30,
+    regionReducer: ee.Reducer.first()
+    })
+    .setChartType("ScatterChart")
+    .setOptions({
+      title: 'DOY Plot, Latitude, Longitude: ' + lat.toFixed(4) + ', ' + lon.toFixed(4),
+      pointSize: 0,
+      series: {
+        0: { pointSize: 2},
+      },
+      vAxis: {
+        title: 'Surface reflectance (' + runParams['bandSelect'] + ')',
+      },
+      hAxis: {
+        title: "Day of year",
+        viewWindowMode: 'explicit', 
+        viewWindow: {
+          min: 0,
+          max: 366
+        }
+      },
+      height: '90%', //If 100%, chart starts growing if split panel is resized
+      stretch: 'both',
+      explorer: {} ,
+    })
+
+  panel.widgets().set(0, chart) 
+  
+}
 
 
 /**
@@ -422,6 +487,8 @@ function initializeTSViewer(mapObj, ccdParams, runParams, vizParams) {
   
 }
 
+
+
 /**
 * Create standalone chart with time series and CCDC segments
 * @param {ee.Map} mapObj An ee.Map() instance
@@ -469,9 +536,15 @@ function getTSChart(mapObj, ccdParams, runParams, vizParams) {
     chartPanel.add(waitMsg);
     
     var geometry = ee.Geometry.Point([coords.lon, coords.lat]);
-    // Run ccdc and get time series. nsegs MUST be an integer
-    chartCcdc(ccdParams, runParams, vizParams, geometry, chartPanel, 
+    // Retrieve time series of DOY plot
+    if (vizParams.tsType == "Time series"){
+      chartCcdc(ccdParams, runParams, vizParams, geometry, chartPanel, 
               coords.lat, coords.lon, mapObj)
+    
+    } else if (vizParams.tsType == "DOY") {
+      chartDOY(runParams, mapObj, geometry, chartPanel,
+                coords.lat, coords.lon)
+    }
   }
 
   // Set initial map options and link map and chart
@@ -1251,6 +1324,7 @@ var predictors = function(visLabels, coefs, props, helperFuncs) {
 
 exports = {
   getImageRegion: getImageRegion,
+  getBounds: getBounds,
   chartCcdc: chartCcdc,
   getTSChart: getTSChart,
   initializeTSViewer: initializeTSViewer,
