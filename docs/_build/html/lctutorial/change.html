@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Part 1: Submit Change Detection &mdash; GLANCE 0.0.1 documentation</title>
+  <title>Part 1: Submit Change Detection &mdash; gee-ccdc-tools 0.0.1 documentation</title>
   
 
   
@@ -51,7 +51,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> GLANCE
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> gee-ccdc-tools
           
 
           
@@ -118,7 +118,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">GLANCE</a>
+          <a href="../index.html">gee-ccdc-tools</a>
         
       </nav>
 
@@ -199,7 +199,7 @@ process continues until the end of the time series.</p>
 <p>I am not going to go into all of the details of the algorithm, because
 they are explained in the manuscript above. If this is all new to you, I
 encourage you to experiment with our CCDC time series viewer app:</p>
-<p><a class="reference external" href="https://glance.earthengine.app/view/tstools">https://glance.earthengine.app/view/tstools</a></p>
+<p><a class="reference external" href="https://parevalo-bu.users.earthengine.app/view/quick-tstools">https://parevalo-bu.users.earthengine.app/view/quick-tstools</a></p>
 <p>Simply navigate to a location (or choose User Location to navigate to
 your current location), pick a Landsat spectral band, and click on the
 map to see the CCDC fit to the location you clicked. For example, here
@@ -222,7 +222,7 @@ that contains functions for generating input data, running CCDC,
 filtering the results, creating “synthetic” Landsat imagery, and
 classifying the change detection results. The API functions can be found
 <em>here</em>, and loaded from the following repository:</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">utils</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;projects/GLANCE:ccdcUtilities/api&#39;</span><span class="p">)</span>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">utils</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/api&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -236,7 +236,7 @@ collection, I refer you to the GEE Examples repo. Alternatively, to
 obtain an image collection of Landsat 4, 5, 7, and 8 data that is masked
 using the cfmask band you can use the ‘getLandsat’ function in the
 ‘Inputs’ module of our api. The parameters for building an image collection
-and running CCDC live within a seperate <a class="reference external" href="https://gee-tutorials.readthedocs.io/en/latest/lctutorial/params.html">parameter file</a></p>
+and running CCDC live within a seperate <a class="reference external" href="https://gee-ccdc-tools.readthedocs.io/en/latest/lctutorial/params.html">parameter file</a></p>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Load example parameter file</span>
 <span class="kd">var</span> <span class="nx">params</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;projects/GLANCE:Tutorial/params.js&#39;</span><span class="p">)</span>
 

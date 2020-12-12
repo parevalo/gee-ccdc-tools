@@ -27,7 +27,7 @@ countries in East Africa (Rwanda, Uganda, Ethiopia, Tanzania, Kenya,
 Zambia, and Malawi). 
 
 The first tool that be used in this tutorial can be found
-`here <https://code.earthengine.google.com/?scriptPath=projects%2FGLANCE%3AAPPS%2Fclassify_app>`__.
+`here <https://code.earthengine.google.com/?scriptPath=users%2Fparevalo_bu%2Fgee-ccdc-tools%3AAPPS%2Fclassify_app>`__.
 
 1. Classify time series segments
 --------------------------------
@@ -163,7 +163,7 @@ can be exported as a task that should appear with the description
 Once the task has completed processing, we can use it to make landcover
 maps at any date in time for the study region. This asset can be used
 directly in the `Landcover
-Application <https://code.earthengine.google.com/?scriptPath=projects%2FGLANCE%3AAPPS%2Flandcover_app>`__.
+Application <https://code.earthengine.google.com/?scriptPath=users%2Fparevalo_bu%2Fgee-ccdc-tools%3AAPPS%2Flandcover_app>`__.
 This application is relatively simple - all you need to do is specify
 the path to the segment image created above and a list of dates and
 voilà! The dates should be entered in the format ‘YYYY-MM-DD’ and

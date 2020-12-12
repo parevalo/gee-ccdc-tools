@@ -1,9 +1,11 @@
 Google Earth Engine tools for CCDC
 ==================================
 
-This is the documentation for the toolbox to use the Continuous Change Detection and Classification (CCDC) algorithm on the Google Earth Engine.
+This is the documentation for a suite of tools designed for continuous land change monitoring in Google Earth Engine. The paper that accompanies this documentation and explains the rationale and potential uses for the tools can be found here_.
 
+.. _here: https://doi.org/10.3389/fclim.2020.576740
 .. _Google Earth Engine: https://earthengine.google.com/
+
 
 CCDC is used to monitor changes in land cover, land use, or condition using dense time series of satellite imagery. As the name suggests, there are two primary components: change detection and classification. CCDC has primarily been applied using Landsat data, but these tools are designed to be data agnostic. This toolbox provides applications and a Javascript API for performing all necessary steps in using CCDC, which include:
 
@@ -48,6 +50,7 @@ __________
    lcgui
    lctut
    ccdc
+
 
 API REFERENCE
 _____________

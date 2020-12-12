@@ -32,7 +32,7 @@ I am not going to go into all of the details of the algorithm, because
 they are explained in the manuscript above. If this is all new to you, I
 encourage you to experiment with our CCDC time series viewer app:
 
-https://glance.earthengine.app/view/tstools
+https://parevalo-bu.users.earthengine.app/view/quick-tstools
 
 Simply navigate to a location (or choose User Location to navigate to
 your current location), pick a Landsat spectral band, and click on the
@@ -63,7 +63,7 @@ classifying the change detection results. The API functions can be found
 
 .. code:: javascript
 
-    var utils = require('projects/GLANCE:ccdcUtilities/api')
+    var utils = require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/api')
 
 Building and image stack
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,7 +76,7 @@ collection, I refer you to the GEE Examples repo. Alternatively, to
 obtain an image collection of Landsat 4, 5, 7, and 8 data that is masked
 using the cfmask band you can use the 'getLandsat' function in the
 'Inputs' module of our api. The parameters for building an image collection
-and running CCDC live within a seperate `parameter file <https://gee-tutorials.readthedocs.io/en/latest/lctutorial/params.html>`_
+and running CCDC live within a seperate `parameter file <https://gee-ccdc-tools.readthedocs.io/en/latest/lctutorial/params.html>`_
 
 .. code:: javascript
 
