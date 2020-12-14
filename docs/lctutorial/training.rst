@@ -30,12 +30,11 @@ I am not going to go into details, as that has been documented in depth
 on `Google's Developer
 Page <https://developers.google.com/earth-engine/importing>`__. However,
 it's worth making sure your data is the correct format. You can do that
-by printing out the first feature. 
+by printing out the first feature. Note the params object contains
+parameters for classification and was defined at the beginning of this
+tutorial. 
 
 .. code:: javascript
-
-    // Load example parameter file
-    var params = require('projects/GLANCE:Tutorial/params.js')
 
     var trainingData = ee.FeatureCollection(params.Classification.trainingPath)
     print(trainingData.first())
@@ -99,7 +98,7 @@ This can also be done using the 'remapLC' function in our API. See the `API docu
 .. code:: javascript
 
     // First load the API file
-    var utils = require('projects/GLANCE:ccdcUtilities/api')
+    var utils = require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/api')
 
     trainingData = utils.Classification.remapLC(
       fakeFC, 'lc_string', 'landcover',['forest','agriculture','water'],[1,2,3])
