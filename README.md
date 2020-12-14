@@ -16,7 +16,7 @@ observations and CCDC coefficients, click [here](https://parevalo_bu.users.earth
 
 # Citations
 
-Arévalo, P., Bullock, E., Woodcock, C.E., Olofsson, P. (2020). A suite of tools for Continuous Land Change Monitoring in the Google Earth Engine. Frontiers in Climate.
+Arévalo, P., Bullock, E., Woodcock, C.E., Olofsson, P. (2020). A suite of tools for Continuous Land Change Monitoring in the Google Earth Engine. Frontiers in Climate. https://doi.org/10.3389/fclim.2020.576740
 
 
 
