@@ -47,11 +47,8 @@ tutorial.
     // Optionally filter by study area
     trainingData = trainingData.filterBounds(params.StudyRegion)
 
-    // Obtain the CCDC change detection array
-    var ccdcArray = 'PATH/TO/YOUR/CCDC/ARRAY'
-
     // Next, turn array image into image
-    var imageToClassify = utils.CCDC.buildCcdImage(ccdcArray, numberOfSegments, bandNames)
+    var imageToClassify = utils.CCDC.buildCcdImage(params.Classification.changeResults, params.Classification.segs.length, params.Classification.bandNames)
 
     // Now get ancillary data
     var demImage = ee.Image('USGS/SRTMGL1_003').rename('ELEVATION')
@@ -72,12 +69,7 @@ tutorial.
         params.Classification.inputFeatures)
         .clip(params.StudyRegion)
 
-    // Get a legend and visualization parameters from the api.
-    var viz = utils.Results.viz
-    var legend = utils.Results.legend
-
-    Map.addLayer(results.select(0), viz, 'Seg1 Classification')
-    Map.add(legend)
+    Map.addLayer(results.select(0).randomVisualizer(), {}, 'Seg1 Classification')
 
 .. figure:: ../img/classify1.png
    :alt: img1

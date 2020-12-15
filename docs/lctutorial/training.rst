@@ -82,31 +82,26 @@ a helper function in our API. For this example, I'll demonstrate how
 it's done using the EE function and our CCDC API, and hereforth I'll
 mostly be relying on the API.
 
-In pure EE code, and using the class attribute name in the above example
-and assuming our only classes are 'forest','agriculture',and 'water',
-you can convert them to numeric values in a new attribute 'landcover'
-with the following code:
+Using the example defined in the parameters for this tutorial, there
+are 7 classes: Bare, Developed, Forest, Herbaceous, Shrub, Snow/Ice,
+and Water in the attribute 'LC_Class'. Here we will redefine this
+attribute to be numeric 1-7. 
 
 .. code:: javascript
 
-     trainingData  = trainingData.map(function(feat) {
-       return feat.set('landcover',feat.get('lc_string'))})
-       .remap(['forest','agriculture','water'],[1,2,3],'landcover')
+    print(trainingData.aggregate_histogram('LC_Class'))
+    trainingData  = trainingData.remap(['Bare','Developed','Forest','Herbaceous','Shrub','Snow/Ice','Water'],[1,2,3,4,5,6,7],'LC_Class')
+    print(trainingData.aggregate_histogram('LC_Class'))
 
 This can also be done using the 'remapLC' function in our API. See the `API documentation <https://gee-tutorials.readthedocs.io/en/latest/api/api.html>`_ for a full description of available functions.
 
 .. code:: javascript
 
-    // First load the API file
-    var utils = require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/api')
-
     trainingData = utils.Classification.remapLC(
-      fakeFC, 'lc_string', 'landcover',['forest','agriculture','water'],[1,2,3])
+        trainingData, 'LC_Class', 'LC_Class',['Bare','Developed','Forest','Herbaceous','Shrub','Snow/Ice','Water'],[1,2,3,4,5,6,7],[1,2,3])
+    print(trainingData.aggregate_histogram('LC_Class'))
 
-    print('First training point: ', trainingData.first())
-
-Note that there should now be an attribute called 'landcover' that is
-numeric.
+Note that the attribute 'LC_Class' is now numeric. 
 
 Add a year attribute
 ~~~~~~~~~~~~~~~~~~~~
@@ -137,6 +132,9 @@ This is useful for testing classification parameters. The function to do this
 is called 'getTrainingCoefsAtDate'. First, however, we need to construct the 
 CCDC coefficient image to sample from.
 
+Note: The change detection results from the previous section must be 
+specified as the 'changeResults' parameter!
+
 .. code:: javascript
 
     // Define bands to use in classification
@@ -151,16 +149,11 @@ CCDC coefficient image to sample from.
     // Property corresponding to year of training data
     var yearProperty = params.Classification.yearProperty
 
-    // CCDC change detection results from the first part of this tutorial.
-    var coefImage = ee.ImageCollection(params.Classification.changeResults)
-      .filterBounds(params.StudyRegion).mosaic()
+    // Define path to change detection results
+    params.Classification.changeResults = '/path/to/change/detection/results'
 
     // Load ccd image stack with coefficients and change information
-
-    var ccdImage = utils.Classification.loadResults(
-      params.Classification.resultFormat,
-      params.Classification.changeResults,
-      params.StudyRegion)
+    var ccdImage = utils.CCDC.buildCcdImage(params.Classification.changeResults, params.Classification.segs.length, params.Classification.bandNames)
 
     print('CCD Image:', ccdImage)
 
