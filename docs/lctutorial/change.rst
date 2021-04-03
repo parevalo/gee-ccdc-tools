@@ -84,8 +84,6 @@ change detection and classification.
 
     // Change detection parameters
     var changeDetection = {
-      start: '2000-01-01',
-      end: '2020-01-01',
       breakpointBands: ['GREEN','RED','NIR','SWIR1','SWIR2'],
       tmaskBands: ['GREEN','SWIR2'],
       minObservations: 6,
@@ -100,10 +98,9 @@ change detection and classification.
     // Classification parameters
     var classification = {
       bandNames: ["B1","B2","B3","B4","B5","B6","B7"],
-      inputFeatures: ["INTP", "SLP","PHASE","AMP","RMSE"],
+      inputFeatures: ["INTP", "SLP","PHASE","RMSE"],
       coefs: ["INTP", "SLP","COS", "SIN","RMSE","COS2","SIN2","COS3","SIN3"],
       ancillaryFeatures: ["ELEVATION","ASPECT","DEM_SLOPE","RAINFALL","TEMPERATURE"],
-      changeResults: 'projects/LCMS/SERVIR_CCDC',
       resultFormat: 'SegCollection',
       classProperty: 'LC_Class',
       yearProperty: 'year',
@@ -119,13 +116,14 @@ change detection and classification.
       segs: ["S1", "S2", "S3", "S4", "S5", "S6"],
       trainingPath: 'projects/GLANCE/TRAINING/RAs/NA_training_master_Feb_7',
       trainingPathPredictors: 'projects/GLANCE/TRAINING/MASTER/TRAINING_MASTER_JAN25_2020',
-      yearProperty: 'year'
     }
 
     var studyRegion = ee.FeatureCollection('USDOS/LSIB_SIMPLE/2017')
       .filterMetadata('country_na','equals','Kenya').union()
 
     var params = {
+      start: '2000-01-01',
+      end: '2020-01-01',
       ChangeDetection: changeDetection,
       Classification: classification,
       StudyRegion: studyRegion
@@ -134,7 +132,7 @@ change detection and classification.
     // Filter by date and a location in Brazil
     var filteredLandsat = utils.Inputs.getLandsat()
         .filterBounds(params.StudyRegion)
-        .filterDate(params.ChangeDetection.start, params.ChangeDetection.end)
+        .filterDate(params.start, params.end)
 
     print(filteredLandsat.size())
 
@@ -153,6 +151,8 @@ number of model breaks. Documentation on the CCDC parameters are in the
 GEE Docs, so I will not elaborate on them here.
 
 .. code:: javascript
+
+    params.ChangeDetection['collection'] = filteredLandsat
 
     var results = ee.Algorithms.TemporalSegmentation.Ccdc(params.ChangeDetection)
     print(results)
