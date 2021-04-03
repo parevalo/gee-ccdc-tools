@@ -186,7 +186,7 @@ years.</p>
 <p>To go from a classified image stack to a classification at a date is
 relatively straightforward. To get a land cover classification at a
 specific date we can use the ‘getLcAtDate’ function in our API.</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">utils</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;projects/GLANCE:ccdcUtilities/api&#39;</span><span class="p">)</span>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">utils</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/api&#39;</span><span class="p">)</span>
 <span class="kd">var</span> <span class="nx">classificationStack</span> <span class="o">=</span> <span class="s1">&#39;/PATH/TO/IMAGE/STACK&#39;</span>
 <span class="kd">var</span> <span class="nx">dateOfClassification</span> <span class="o">=</span> <span class="s1">&#39;2014-03-27&#39;</span>
 <span class="kd">var</span> <span class="nx">matchingDate</span> <span class="o">=</span> <span class="nx">classUtils</span><span class="p">.</span><span class="nx">getLcAtDate</span><span class="p">(</span><span class="nx">classificationStack</span><span class="p">,</span>

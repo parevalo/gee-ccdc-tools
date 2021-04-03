@@ -235,10 +235,58 @@ cleaner the data the better. If you wish to build your own Image
 collection, I refer you to the GEE Examples repo. Alternatively, to
 obtain an image collection of Landsat 4, 5, 7, and 8 data that is masked
 using the cfmask band you can use the ‘getLandsat’ function in the
-‘Inputs’ module of our api. The parameters for building an image collection
-and running CCDC live within a seperate <a class="reference external" href="https://gee-ccdc-tools.readthedocs.io/en/latest/lctutorial/params.html">parameter file</a></p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Load example parameter file</span>
-<span class="kd">var</span> <span class="nx">params</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;projects/GLANCE:Tutorial/params.js&#39;</span><span class="p">)</span>
+‘Inputs’ module of our api. First, however, we need to define parameters for
+change detection and classification.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Define parameters</span>
+
+<span class="c1">// Change detection parameters</span>
+<span class="kd">var</span> <span class="nx">changeDetection</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="nx">start</span><span class="o">:</span> <span class="s1">&#39;2000-01-01&#39;</span><span class="p">,</span>
+  <span class="nx">end</span><span class="o">:</span> <span class="s1">&#39;2020-01-01&#39;</span><span class="p">,</span>
+  <span class="nx">breakpointBands</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;GREEN&#39;</span><span class="p">,</span><span class="s1">&#39;RED&#39;</span><span class="p">,</span><span class="s1">&#39;NIR&#39;</span><span class="p">,</span><span class="s1">&#39;SWIR1&#39;</span><span class="p">,</span><span class="s1">&#39;SWIR2&#39;</span><span class="p">],</span>
+  <span class="nx">tmaskBands</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;GREEN&#39;</span><span class="p">,</span><span class="s1">&#39;SWIR2&#39;</span><span class="p">],</span>
+  <span class="nx">minObservations</span><span class="o">:</span> <span class="mi">6</span><span class="p">,</span>
+  <span class="nx">chiSquareProbability</span><span class="o">:</span> <span class="mf">.99</span><span class="p">,</span>
+  <span class="nx">minNumOfYearsScaler</span><span class="o">:</span> <span class="mf">1.33</span><span class="p">,</span>
+  <span class="nx">dateFormat</span><span class="o">:</span> <span class="mi">2</span><span class="p">,</span>
+  <span class="nx">lambda</span><span class="o">:</span> <span class="mi">20</span><span class="o">/</span><span class="mi">10000</span><span class="p">,</span>
+  <span class="nx">maxIterations</span><span class="o">:</span> <span class="mi">25000</span>
+<span class="p">}</span>
+
+
+<span class="c1">// Classification parameters</span>
+<span class="kd">var</span> <span class="nx">classification</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="nx">bandNames</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;B1&quot;</span><span class="p">,</span><span class="s2">&quot;B2&quot;</span><span class="p">,</span><span class="s2">&quot;B3&quot;</span><span class="p">,</span><span class="s2">&quot;B4&quot;</span><span class="p">,</span><span class="s2">&quot;B5&quot;</span><span class="p">,</span><span class="s2">&quot;B6&quot;</span><span class="p">,</span><span class="s2">&quot;B7&quot;</span><span class="p">],</span>
+  <span class="nx">inputFeatures</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;INTP&quot;</span><span class="p">,</span> <span class="s2">&quot;SLP&quot;</span><span class="p">,</span><span class="s2">&quot;PHASE&quot;</span><span class="p">,</span><span class="s2">&quot;AMP&quot;</span><span class="p">,</span><span class="s2">&quot;RMSE&quot;</span><span class="p">],</span>
+  <span class="nx">coefs</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;INTP&quot;</span><span class="p">,</span> <span class="s2">&quot;SLP&quot;</span><span class="p">,</span><span class="s2">&quot;COS&quot;</span><span class="p">,</span> <span class="s2">&quot;SIN&quot;</span><span class="p">,</span><span class="s2">&quot;RMSE&quot;</span><span class="p">,</span><span class="s2">&quot;COS2&quot;</span><span class="p">,</span><span class="s2">&quot;SIN2&quot;</span><span class="p">,</span><span class="s2">&quot;COS3&quot;</span><span class="p">,</span><span class="s2">&quot;SIN3&quot;</span><span class="p">],</span>
+  <span class="nx">ancillaryFeatures</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;ELEVATION&quot;</span><span class="p">,</span><span class="s2">&quot;ASPECT&quot;</span><span class="p">,</span><span class="s2">&quot;DEM_SLOPE&quot;</span><span class="p">,</span><span class="s2">&quot;RAINFALL&quot;</span><span class="p">,</span><span class="s2">&quot;TEMPERATURE&quot;</span><span class="p">],</span>
+  <span class="nx">changeResults</span><span class="o">:</span> <span class="s1">&#39;projects/LCMS/SERVIR_CCDC&#39;</span><span class="p">,</span>
+  <span class="nx">resultFormat</span><span class="o">:</span> <span class="s1">&#39;SegCollection&#39;</span><span class="p">,</span>
+  <span class="nx">classProperty</span><span class="o">:</span> <span class="s1">&#39;LC_Class&#39;</span><span class="p">,</span>
+  <span class="nx">yearProperty</span><span class="o">:</span> <span class="s1">&#39;year&#39;</span><span class="p">,</span>
+  <span class="nx">classifier</span><span class="o">:</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">Classifier</span><span class="p">.</span><span class="nx">smileRandomForest</span><span class="p">,</span>
+  <span class="nx">classifierParams</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">numberOfTrees</span><span class="o">:</span> <span class="mi">150</span><span class="p">,</span>
+    <span class="nx">variablesPerSplit</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+    <span class="nx">minLeafPopulation</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="nx">bagFraction</span><span class="o">:</span> <span class="mf">0.5</span><span class="p">,</span>
+    <span class="nx">maxNodes</span><span class="o">:</span> <span class="kc">null</span>
+  <span class="p">},</span>
+  <span class="nx">outPath</span><span class="o">:</span> <span class="s1">&#39;projects/GLANCE/RESULTS/CLASSIFICATION/VERSION_1&#39;</span><span class="p">,</span>
+  <span class="nx">segs</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;S1&quot;</span><span class="p">,</span> <span class="s2">&quot;S2&quot;</span><span class="p">,</span> <span class="s2">&quot;S3&quot;</span><span class="p">,</span> <span class="s2">&quot;S4&quot;</span><span class="p">,</span> <span class="s2">&quot;S5&quot;</span><span class="p">,</span> <span class="s2">&quot;S6&quot;</span><span class="p">],</span>
+  <span class="nx">trainingPath</span><span class="o">:</span> <span class="s1">&#39;projects/GLANCE/TRAINING/RAs/NA_training_master_Feb_7&#39;</span><span class="p">,</span>
+  <span class="nx">trainingPathPredictors</span><span class="o">:</span> <span class="s1">&#39;projects/GLANCE/TRAINING/MASTER/TRAINING_MASTER_JAN25_2020&#39;</span><span class="p">,</span>
+  <span class="nx">yearProperty</span><span class="o">:</span> <span class="s1">&#39;year&#39;</span>
+<span class="p">}</span>
+
+<span class="kd">var</span> <span class="nx">studyRegion</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">FeatureCollection</span><span class="p">(</span><span class="s1">&#39;USDOS/LSIB_SIMPLE/2017&#39;</span><span class="p">)</span>
+  <span class="p">.</span><span class="nx">filterMetadata</span><span class="p">(</span><span class="s1">&#39;country_na&#39;</span><span class="p">,</span><span class="s1">&#39;equals&#39;</span><span class="p">,</span><span class="s1">&#39;Kenya&#39;</span><span class="p">).</span><span class="nx">union</span><span class="p">()</span>
+
+<span class="kd">var</span> <span class="nx">params</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="nx">ChangeDetection</span><span class="o">:</span> <span class="nx">changeDetection</span><span class="p">,</span>
+  <span class="nx">Classification</span><span class="o">:</span> <span class="nx">classification</span><span class="p">,</span>
+  <span class="nx">StudyRegion</span><span class="o">:</span> <span class="nx">studyRegion</span>
+<span class="p">}</span>
 
 <span class="c1">// Filter by date and a location in Brazil</span>
 <span class="kd">var</span> <span class="nx">filteredLandsat</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Inputs</span><span class="p">.</span><span class="nx">getLandsat</span><span class="p">()</span>
@@ -260,20 +308,7 @@ change information for every detected segment. That means that the
 dimensions for one pixel can be different than another, depending on the
 number of model breaks. Documentation on the CCDC parameters are in the
 GEE Docs, so I will not elaborate on them here.</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// First define parameters</span>
-<span class="kd">var</span> <span class="nx">changeParams</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="nx">collection</span><span class="o">:</span> <span class="nx">filteredLandsat</span><span class="p">,</span>
-    <span class="nx">breakpointBands</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">breakpointBands</span><span class="p">,</span>
-    <span class="nx">tmaskBands</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">tmaskBands</span><span class="p">,</span>
-    <span class="nx">minObservations</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">minObservations</span><span class="p">,</span>
-    <span class="nx">chiSquareProbability</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">chiSquareProbability</span><span class="p">,</span>
-    <span class="nx">minNumOfYearsScaler</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">minNumOfYearsScaler</span><span class="p">,</span>
-    <span class="nx">dateFormat</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">dateFormat</span><span class="p">,</span>
-    <span class="nx">lambda</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">lambda</span><span class="p">,</span>
-    <span class="nx">maxIterations</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">.</span><span class="nx">maxIterations</span>
-  <span class="p">}</span>
-
-<span class="kd">var</span> <span class="nx">results</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">Algorithms</span><span class="p">.</span><span class="nx">TemporalSegmentation</span><span class="p">.</span><span class="nx">Ccdc</span><span class="p">(</span><span class="nx">changeParams</span><span class="p">)</span>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">results</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">Algorithms</span><span class="p">.</span><span class="nx">TemporalSegmentation</span><span class="p">.</span><span class="nx">Ccdc</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">ChangeDetection</span><span class="p">)</span>
 <span class="nx">print</span><span class="p">(</span><span class="nx">results</span><span class="p">)</span>
 </pre></div>
 </div>

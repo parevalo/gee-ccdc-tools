@@ -206,11 +206,10 @@ corresponds to the land cover label.</p></li>
 on <a class="reference external" href="https://developers.google.com/earth-engine/importing">Google’s Developer
 Page</a>. However,
 it’s worth making sure your data is the correct format. You can do that
-by printing out the first feature.</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Load example parameter file</span>
-<span class="kd">var</span> <span class="nx">params</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;projects/GLANCE:Tutorial/params.js&#39;</span><span class="p">)</span>
-
-<span class="kd">var</span> <span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">FeatureCollection</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">trainingPath</span><span class="p">)</span>
+by printing out the first feature. Note the params object contains
+parameters for classification and was defined at the beginning of this
+tutorial.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">FeatureCollection</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">trainingPath</span><span class="p">)</span>
 <span class="nx">print</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">first</span><span class="p">())</span>
 </pre></div>
 </div>
@@ -261,7 +260,7 @@ with the following code:</p>
 </div>
 <p>This can also be done using the ‘remapLC’ function in our API. See the <a class="reference external" href="https://gee-tutorials.readthedocs.io/en/latest/api/api.html">API documentation</a> for a full description of available functions.</p>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// First load the API file</span>
-<span class="kd">var</span> <span class="nx">utils</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;projects/GLANCE:ccdcUtilities/api&#39;</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">utils</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/api&#39;</span><span class="p">)</span>
 
 <span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">remapLC</span><span class="p">(</span>
   <span class="nx">fakeFC</span><span class="p">,</span> <span class="s1">&#39;lc_string&#39;</span><span class="p">,</span> <span class="s1">&#39;landcover&#39;</span><span class="p">,[</span><span class="s1">&#39;forest&#39;</span><span class="p">,</span><span class="s1">&#39;agriculture&#39;</span><span class="p">,</span><span class="s1">&#39;water&#39;</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>

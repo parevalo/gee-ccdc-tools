@@ -181,8 +181,6 @@ because each pixel can have a different number of dimensions depending
 on the changes detected. This means that the process is <em>slightly</em> more
 complicated than a simple supervised classification, but this tutorial
 will go through it all.</p>
-<p>A code example using GLANCE data and parameters can be found here:</p>
-<p><a class="reference external" href="https://code.earthengine.google.com/?scriptPath=projects%2FGLANCE%3ATutorial%2FPart%202.%20Classification">https://code.earthengine.google.com/?scriptPath=projects%2FGLANCE%3ATutorial%2FPart%202.%20Classification</a></p>
 <div class="section" id="classification-requirements">
 <h2>Classification requirements:<a class="headerlink" href="#classification-requirements" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
@@ -197,29 +195,20 @@ of this tutorial.</p></li>
 the Inputs module can be used to create the CCDC stack with ancillary data to
 classify.</p>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// First load the API file</span>
-<span class="kd">var</span> <span class="nx">utils</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;projects/GLANCE:ccdcUtilities/api&#39;</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">utils</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/api&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next, we can actually do the classification! We’ve already defined the
+parameters above, so we can then use the ‘classifySegments’ function to
+classify the CCDC segments. Note the parameters were defined earlier in this
+tutorial.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Now do the actual classification add the first segments classification to the map</span>
 
-<span class="c1">// Define a couple parameters</span>
-<span class="kd">var</span> <span class="nx">bandNames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;BLUE&quot;</span><span class="p">,</span><span class="s2">&quot;GREEN&quot;</span><span class="p">,</span><span class="s2">&quot;RED&quot;</span><span class="p">,</span><span class="s2">&quot;NIR&quot;</span><span class="p">,</span><span class="s2">&quot;SWIR1&quot;</span><span class="p">,</span><span class="s2">&quot;SWIR2&quot;</span><span class="p">,</span><span class="s2">&quot;TEMP&quot;</span><span class="p">]</span>
-<span class="kd">var</span> <span class="nx">inputFeatures</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;INTP&quot;</span><span class="p">,</span> <span class="s2">&quot;SLP&quot;</span><span class="p">,</span><span class="s2">&quot;PHASE&quot;</span><span class="p">,</span><span class="s2">&quot;AMPLITUDE&quot;</span><span class="p">,</span><span class="s2">&quot;RMSE&quot;</span><span class="p">]</span>
-<span class="kd">var</span> <span class="nx">ancillaryFeatures</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ELEVATION&quot;</span><span class="p">,</span><span class="s2">&quot;ASPECT&quot;</span><span class="p">,</span><span class="s2">&quot;DEM_SLOPE&quot;</span><span class="p">,</span><span class="s2">&quot;RAINFALL&quot;</span><span class="p">,</span><span class="s2">&quot;TEMPERATURE&quot;</span><span class="p">]</span>
-<span class="kd">var</span> <span class="nx">numberOfSegments</span> <span class="o">=</span> <span class="mi">6</span>
-<span class="kd">var</span> <span class="nx">classProperty</span> <span class="o">=</span> <span class="s1">&#39;landcover&#39;</span>
-<span class="kd">var</span> <span class="nx">trainProp</span> <span class="o">=</span> <span class="mf">.2</span>
-<span class="kd">var</span> <span class="nx">seed</span> <span class="o">=</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">ceil</span><span class="p">(</span><span class="nb">Math</span><span class="p">.</span><span class="nx">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
-<span class="kd">var</span> <span class="nx">studyArea</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">Geometry</span><span class="p">.</span><span class="nx">Polygon</span><span class="p">(</span>
-        <span class="p">[[[</span><span class="o">-</span><span class="mf">65.11727581440459</span><span class="p">,</span> <span class="o">-</span><span class="mf">8.755437491733284</span><span class="p">],</span>
-          <span class="p">[</span><span class="o">-</span><span class="mf">65.11727581440459</span><span class="p">,</span> <span class="o">-</span><span class="mf">13.240578578777912</span><span class="p">],</span>
-          <span class="p">[</span><span class="o">-</span><span class="mf">59.470303158154586</span><span class="p">,</span> <span class="o">-</span><span class="mf">13.240578578777912</span><span class="p">],</span>
-          <span class="p">[</span><span class="o">-</span><span class="mf">59.470303158154586</span><span class="p">,</span> <span class="o">-</span><span class="mf">8.755437491733284</span><span class="p">]]],</span> <span class="kc">null</span><span class="p">,</span> <span class="kc">false</span><span class="p">);</span>
-<span class="kd">var</span> <span class="nx">trainingDataPath</span> <span class="o">=</span> <span class="s1">&#39;PATH/TO/YOUR/TRAINING/DATA&#39;</span>
-<span class="kd">var</span> <span class="nx">classifier</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">Classifier</span><span class="p">.</span><span class="nx">smileRandomForest</span><span class="p">({</span>
-  <span class="nx">numberOfTrees</span><span class="o">:</span> <span class="mi">150</span><span class="p">,</span>
-  <span class="nx">variablesPerSplit</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
-  <span class="nx">minLeafPopulation</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span>
-  <span class="nx">bagFraction</span><span class="o">:</span> <span class="mf">0.5</span><span class="p">,</span>
-  <span class="nx">maxNodes</span><span class="o">:</span> <span class="kc">null</span>
-<span class="p">})</span>
+<span class="c1">// Get training data as FC</span>
+<span class="kd">var</span> <span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">FeatureCollection</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">trainingPath</span><span class="p">)</span>
+
+<span class="c1">// Optionally filter by study area</span>
+<span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">filterBounds</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">StudyRegion</span><span class="p">)</span>
 
 <span class="c1">// Obtain the CCDC change detection array</span>
 <span class="kd">var</span> <span class="nx">ccdcArray</span> <span class="o">=</span> <span class="s1">&#39;PATH/TO/YOUR/CCDC/ARRAY&#39;</span>
@@ -235,23 +224,16 @@ classify.</p>
     <span class="p">.</span><span class="nx">select</span><span class="p">([</span><span class="s1">&#39;bio01&#39;</span><span class="p">,</span><span class="s1">&#39;bio12&#39;</span><span class="p">])</span>
     <span class="p">.</span><span class="nx">rename</span><span class="p">([</span><span class="s1">&#39;TEMPERATURE&#39;</span><span class="p">,</span><span class="s1">&#39;RAINFALL&#39;</span><span class="p">])</span>
 <span class="kd">var</span> <span class="nx">ancillary</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">Image</span><span class="p">.</span><span class="nx">cat</span><span class="p">([</span><span class="nx">demImage</span><span class="p">,</span> <span class="nx">slope</span><span class="p">,</span> <span class="nx">aspect</span><span class="p">,</span> <span class="nx">bio</span><span class="p">])</span>
-</pre></div>
-</div>
-<p>Next, we can actually do the classification! We’ve already defined the
-parameters above, so we can then use the ‘classifySegments’ function to
-classify the CCDC segments.</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Now do the actual classification add the first segments classification to the map</span>
 
-<span class="c1">// Get training data as FC</span>
-<span class="kd">var</span> <span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">FeatureCollection</span><span class="p">(</span><span class="nx">trainingDataPath</span><span class="p">)</span>
-
-<span class="c1">// Optionally filter by study area</span>
-<span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">filterBounds</span><span class="p">(</span><span class="nx">studyArea</span><span class="p">)</span>
+<span class="c1">// Get classifier with params</span>
+<span class="kd">var</span> <span class="nx">classifier</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">classifier</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">classifierParams</span><span class="p">)</span>
 
 <span class="kd">var</span> <span class="nx">results</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">classifySegments</span><span class="p">(</span>
-    <span class="nx">imageToClassify</span><span class="p">,</span> <span class="nx">numberOfSegments</span><span class="p">,</span> <span class="nx">bandNames</span><span class="p">,</span> <span class="nx">ancillary</span><span class="p">,</span> <span class="nx">ancillaryFeatures</span><span class="p">,</span>
-    <span class="nx">trainingData</span><span class="p">,</span> <span class="nx">classifier</span><span class="p">,</span> <span class="nx">studyArea</span><span class="p">,</span> <span class="nx">classProperty</span><span class="p">,</span> <span class="nx">inputFeatures</span><span class="p">)</span>
-  <span class="p">.</span><span class="nx">clip</span><span class="p">(</span><span class="nx">studyArea</span><span class="p">)</span>
+    <span class="nx">imageToClassify</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">segs</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">bandNames</span><span class="p">,</span>
+    <span class="nx">ancillary</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">ancillaryFeatures</span><span class="p">,</span>
+    <span class="nx">trainingData</span><span class="p">,</span> <span class="nx">classifier</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">StudyRegion</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">classProperty</span><span class="p">,</span>
+    <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">inputFeatures</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">clip</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">StudyRegion</span><span class="p">)</span>
 
 <span class="c1">// Get a legend and visualization parameters from the api.</span>
 <span class="kd">var</span> <span class="nx">viz</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Results</span><span class="p">.</span><span class="nx">viz</span>

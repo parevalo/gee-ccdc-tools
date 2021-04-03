@@ -11,10 +11,6 @@ on the changes detected. This means that the process is *slightly* more
 complicated than a simple supervised classification, but this tutorial
 will go through it all.
 
-A code example using GLANCE data and parameters can be found here:
-
-https://code.earthengine.google.com/?scriptPath=projects%2FGLANCE%3ATutorial%2FPart%202.%20Classification
-
 Classification requirements:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -32,29 +28,24 @@ classify.
 .. code:: javascript
 
     // First load the API file
-    var utils = require('projects/GLANCE:ccdcUtilities/api')
+    var utils = require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/api')
 
-    // Define a couple parameters
-    var bandNames = ["BLUE","GREEN","RED","NIR","SWIR1","SWIR2","TEMP"]
-    var inputFeatures = ["INTP", "SLP","PHASE","AMPLITUDE","RMSE"]
-    var ancillaryFeatures = ["ELEVATION","ASPECT","DEM_SLOPE","RAINFALL","TEMPERATURE"]
-    var numberOfSegments = 6
-    var classProperty = 'landcover'
-    var trainProp = .2
-    var seed = Math.ceil(Math.random() * 1000)
-    var studyArea = ee.Geometry.Polygon(
-            [[[-65.11727581440459, -8.755437491733284],
-              [-65.11727581440459, -13.240578578777912],
-              [-59.470303158154586, -13.240578578777912],
-              [-59.470303158154586, -8.755437491733284]]], null, false);
-    var trainingDataPath = 'PATH/TO/YOUR/TRAINING/DATA'
-    var classifier = ee.Classifier.smileRandomForest({
-      numberOfTrees: 150,
-      variablesPerSplit: null,
-      minLeafPopulation: 1,
-      bagFraction: 0.5,
-      maxNodes: null
-    })
+
+Next, we can actually do the classification! We've already defined the
+parameters above, so we can then use the 'classifySegments' function to
+classify the CCDC segments. Note the parameters were defined earlier in this
+tutorial. 
+
+.. code:: javascript
+
+
+    // Now do the actual classification add the first segments classification to the map
+
+    // Get training data as FC
+    var trainingData = ee.FeatureCollection(params.Classification.trainingPath)
+
+    // Optionally filter by study area
+    trainingData = trainingData.filterBounds(params.StudyRegion)
 
     // Obtain the CCDC change detection array
     var ccdcArray = 'PATH/TO/YOUR/CCDC/ARRAY'
@@ -71,25 +62,15 @@ classify.
         .rename(['TEMPERATURE','RAINFALL'])
     var ancillary = ee.Image.cat([demImage, slope, aspect, bio])
 
-Next, we can actually do the classification! We've already defined the
-parameters above, so we can then use the 'classifySegments' function to
-classify the CCDC segments.
-
-.. code:: javascript
-
-
-    // Now do the actual classification add the first segments classification to the map
-
-    // Get training data as FC
-    var trainingData = ee.FeatureCollection(trainingDataPath)
-
-    // Optionally filter by study area
-    trainingData = trainingData.filterBounds(studyArea)
+    // Get classifier with params
+    var classifier = params.Classification.classifier(params.Classification.classifierParams)
 
     var results = utils.Classification.classifySegments(
-        imageToClassify, numberOfSegments, bandNames, ancillary, ancillaryFeatures,
-        trainingData, classifier, studyArea, classProperty, inputFeatures)
-      .clip(studyArea)
+        imageToClassify, params.Classification.segs.length, params.Classification.bandNames, 
+        ancillary, params.Classification.ancillaryFeatures,
+        trainingData, classifier, params.StudyRegion, params.Classification.classProperty, 
+        params.Classification.inputFeatures)
+        .clip(params.StudyRegion)
 
     // Get a legend and visualization parameters from the api.
     var viz = utils.Results.viz

@@ -1,7 +1,7 @@
 CCDC Results Visualization Tutorial (GUI)
 =====================================================================
 
-By Paulo Arévalo. Dec 12, 2020
+By Paulo Arévalo. Updated April 3, 2021
 
 To faciliate easy access to our API we have created a series of apps with 
 graphical user interfaces that require no coding by the user. These guis can be
@@ -116,7 +116,8 @@ the CCDC results. When the two fields below the button show their corresponding
 information, you will be able interact with the rest of the options in the control 
 panel in any order. For this example, we will load the output of CCDC run for an 
 area between Bolivia and Brazil. This is the predifined example in the tool. 
-
+The tool has also been tested with the upcoming results of a global CCDC results 
+that will be published in the near future.
 
 Visualizing CCD coefficients and change information
 ---------------------------------------------------
