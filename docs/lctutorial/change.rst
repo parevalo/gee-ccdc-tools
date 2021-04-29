@@ -114,8 +114,8 @@ change detection and classification.
       },
       outPath: 'projects/GLANCE/RESULTS/CLASSIFICATION/VERSION_1',
       segs: ["S1", "S2", "S3", "S4", "S5", "S6"],
-      trainingPath: 'projects/GLANCE/TRAINING/RAs/NA_training_master_Feb_7',
-      trainingPathPredictors: 'projects/GLANCE/TRAINING/MASTER/TRAINING_MASTER_JAN25_2020',
+      trainingPath: projects/GLANCE/TRAINING/MASTER/NA/NA_V1/NA_Training_Master_V1_NO_LCMAP_2021_03_17',
+      trainingPathPredictors: 'projects/GLANCE/TRAINING/MASTER/NA/NA_V1/NA_Training_Master_V1_NO_LCMAP_2021_03_17_predictors',
     }
 
     var studyRegion = ee.FeatureCollection('USDOS/LSIB_SIMPLE/2017')
