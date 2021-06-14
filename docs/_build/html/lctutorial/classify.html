@@ -210,11 +210,8 @@ tutorial.</p>
 <span class="c1">// Optionally filter by study area</span>
 <span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">filterBounds</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">StudyRegion</span><span class="p">)</span>
 
-<span class="c1">// Obtain the CCDC change detection array</span>
-<span class="kd">var</span> <span class="nx">ccdcArray</span> <span class="o">=</span> <span class="s1">&#39;PATH/TO/YOUR/CCDC/ARRAY&#39;</span>
-
 <span class="c1">// Next, turn array image into image</span>
-<span class="kd">var</span> <span class="nx">imageToClassify</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">buildCcdImage</span><span class="p">(</span><span class="nx">ccdcArray</span><span class="p">,</span> <span class="nx">numberOfSegments</span><span class="p">,</span> <span class="nx">bandNames</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">imageToClassify</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">buildCcdImage</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">changeResults</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">segs</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">bandNames</span><span class="p">)</span>
 
 <span class="c1">// Now get ancillary data</span>
 <span class="kd">var</span> <span class="nx">demImage</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">Image</span><span class="p">(</span><span class="s1">&#39;USGS/SRTMGL1_003&#39;</span><span class="p">).</span><span class="nx">rename</span><span class="p">(</span><span class="s1">&#39;ELEVATION&#39;</span><span class="p">)</span>
@@ -235,12 +232,7 @@ tutorial.</p>
     <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">inputFeatures</span><span class="p">)</span>
     <span class="p">.</span><span class="nx">clip</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">StudyRegion</span><span class="p">)</span>
 
-<span class="c1">// Get a legend and visualization parameters from the api.</span>
-<span class="kd">var</span> <span class="nx">viz</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Results</span><span class="p">.</span><span class="nx">viz</span>
-<span class="kd">var</span> <span class="nx">legend</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Results</span><span class="p">.</span><span class="nx">legend</span>
-
-<span class="nx">Map</span><span class="p">.</span><span class="nx">addLayer</span><span class="p">(</span><span class="nx">results</span><span class="p">.</span><span class="nx">select</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="nx">viz</span><span class="p">,</span> <span class="s1">&#39;Seg1 Classification&#39;</span><span class="p">)</span>
-<span class="nx">Map</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">legend</span><span class="p">)</span>
+<span class="nx">Map</span><span class="p">.</span><span class="nx">addLayer</span><span class="p">(</span><span class="nx">results</span><span class="p">.</span><span class="nx">select</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="nx">randomVisualizer</span><span class="p">(),</span> <span class="p">{},</span> <span class="s1">&#39;Seg1 Classification&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="figure align-default" id="id1">

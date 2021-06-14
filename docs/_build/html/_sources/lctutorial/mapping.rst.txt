@@ -48,10 +48,8 @@ example we calculate the post-deforestation land cover between 2000 and
 
     var postDefClass = class2018.updateMask(deforestation)
 
-    var viz = utils.Results.viz
-
-    Map.addLayer(postDefClass,
-        viz,
+    Map.addLayer(postDefClass.randomVisualizer(),
+        {},
         'Post-Deforestation Class')
 
 Note that the post-disturbance land cover is almost entirely from the

@@ -249,27 +249,22 @@ convert a string attribute to numeric using the ‘remap’ Earth Engine
 a helper function in our API. For this example, I’ll demonstrate how
 it’s done using the EE function and our CCDC API, and hereforth I’ll
 mostly be relying on the API.</p>
-<p>In pure EE code, and using the class attribute name in the above example
-and assuming our only classes are ‘forest’,’agriculture’,and ‘water’,
-you can convert them to numeric values in a new attribute ‘landcover’
-with the following code:</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">trainingData</span>  <span class="o">=</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">feat</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="nx">feat</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;landcover&#39;</span><span class="p">,</span><span class="nx">feat</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;lc_string&#39;</span><span class="p">))})</span>
-  <span class="p">.</span><span class="nx">remap</span><span class="p">([</span><span class="s1">&#39;forest&#39;</span><span class="p">,</span><span class="s1">&#39;agriculture&#39;</span><span class="p">,</span><span class="s1">&#39;water&#39;</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span><span class="s1">&#39;landcover&#39;</span><span class="p">)</span>
+<p>Using the example defined in the parameters for this tutorial, there
+are 7 classes: Bare, Developed, Forest, Herbaceous, Shrub, Snow/Ice,
+and Water in the attribute ‘LC_Class’. Here we will redefine this
+attribute to be numeric 1-7.</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">print</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">aggregate_histogram</span><span class="p">(</span><span class="s1">&#39;LC_Class&#39;</span><span class="p">))</span>
+<span class="nx">trainingData</span>  <span class="o">=</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">remap</span><span class="p">([</span><span class="s1">&#39;Bare&#39;</span><span class="p">,</span><span class="s1">&#39;Developed&#39;</span><span class="p">,</span><span class="s1">&#39;Forest&#39;</span><span class="p">,</span><span class="s1">&#39;Herbaceous&#39;</span><span class="p">,</span><span class="s1">&#39;Shrub&#39;</span><span class="p">,</span><span class="s1">&#39;Snow/Ice&#39;</span><span class="p">,</span><span class="s1">&#39;Water&#39;</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span><span class="s1">&#39;LC_Class&#39;</span><span class="p">)</span>
+<span class="nx">print</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">aggregate_histogram</span><span class="p">(</span><span class="s1">&#39;LC_Class&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>This can also be done using the ‘remapLC’ function in our API. See the <a class="reference external" href="https://gee-tutorials.readthedocs.io/en/latest/api/api.html">API documentation</a> for a full description of available functions.</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// First load the API file</span>
-<span class="kd">var</span> <span class="nx">utils</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/api&#39;</span><span class="p">)</span>
-
-<span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">remapLC</span><span class="p">(</span>
-  <span class="nx">fakeFC</span><span class="p">,</span> <span class="s1">&#39;lc_string&#39;</span><span class="p">,</span> <span class="s1">&#39;landcover&#39;</span><span class="p">,[</span><span class="s1">&#39;forest&#39;</span><span class="p">,</span><span class="s1">&#39;agriculture&#39;</span><span class="p">,</span><span class="s1">&#39;water&#39;</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
-
-<span class="nx">print</span><span class="p">(</span><span class="s1">&#39;First training point: &#39;</span><span class="p">,</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">first</span><span class="p">())</span>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">remapLC</span><span class="p">(</span>
+    <span class="nx">trainingData</span><span class="p">,</span> <span class="s1">&#39;LC_Class&#39;</span><span class="p">,</span> <span class="s1">&#39;LC_Class&#39;</span><span class="p">,[</span><span class="s1">&#39;Bare&#39;</span><span class="p">,</span><span class="s1">&#39;Developed&#39;</span><span class="p">,</span><span class="s1">&#39;Forest&#39;</span><span class="p">,</span><span class="s1">&#39;Herbaceous&#39;</span><span class="p">,</span><span class="s1">&#39;Shrub&#39;</span><span class="p">,</span><span class="s1">&#39;Snow/Ice&#39;</span><span class="p">,</span><span class="s1">&#39;Water&#39;</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<span class="nx">print</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">aggregate_histogram</span><span class="p">(</span><span class="s1">&#39;LC_Class&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>Note that there should now be an attribute called ‘landcover’ that is
-numeric.</p>
+<p>Note that the attribute ‘LC_Class’ is now numeric.</p>
 </div>
 <div class="section" id="add-a-year-attribute">
 <h2>Add a year attribute<a class="headerlink" href="#add-a-year-attribute" title="Permalink to this headline">¶</a></h2>
@@ -296,6 +291,8 @@ second way, because it enables a faster classification that will load “on the 
 This is useful for testing classification parameters. The function to do this
 is called ‘getTrainingCoefsAtDate’. First, however, we need to construct the
 CCDC coefficient image to sample from.</p>
+<p>Note: The change detection results from the previous section must be
+specified as the ‘changeResults’ parameter!</p>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Define bands to use in classification</span>
 <span class="kd">var</span> <span class="nx">bands</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">bandNames</span>
 
@@ -308,16 +305,11 @@ CCDC coefficient image to sample from.</p>
 <span class="c1">// Property corresponding to year of training data</span>
 <span class="kd">var</span> <span class="nx">yearProperty</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">yearProperty</span>
 
-<span class="c1">// CCDC change detection results from the first part of this tutorial.</span>
-<span class="kd">var</span> <span class="nx">coefImage</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">ImageCollection</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">changeResults</span><span class="p">)</span>
-  <span class="p">.</span><span class="nx">filterBounds</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">StudyRegion</span><span class="p">).</span><span class="nx">mosaic</span><span class="p">()</span>
+<span class="c1">// Define path to change detection results</span>
+<span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">changeResults</span> <span class="o">=</span> <span class="s1">&#39;/path/to/change/detection/results&#39;</span>
 
 <span class="c1">// Load ccd image stack with coefficients and change information</span>
-
-<span class="kd">var</span> <span class="nx">ccdImage</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">loadResults</span><span class="p">(</span>
-  <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">resultFormat</span><span class="p">,</span>
-  <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">changeResults</span><span class="p">,</span>
-  <span class="nx">params</span><span class="p">.</span><span class="nx">StudyRegion</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">ccdImage</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">buildCcdImage</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">changeResults</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">segs</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">bandNames</span><span class="p">)</span>
 
 <span class="nx">print</span><span class="p">(</span><span class="s1">&#39;CCD Image:&#39;</span><span class="p">,</span> <span class="nx">ccdImage</span><span class="p">)</span>
 

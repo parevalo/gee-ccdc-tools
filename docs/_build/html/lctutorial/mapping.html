@@ -211,10 +211,8 @@ example we calculate the post-deforestation land cover between 2000 and
 
 <span class="kd">var</span> <span class="nx">postDefClass</span> <span class="o">=</span> <span class="nx">class2018</span><span class="p">.</span><span class="nx">updateMask</span><span class="p">(</span><span class="nx">deforestation</span><span class="p">)</span>
 
-<span class="kd">var</span> <span class="nx">viz</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Results</span><span class="p">.</span><span class="nx">viz</span>
-
-<span class="nx">Map</span><span class="p">.</span><span class="nx">addLayer</span><span class="p">(</span><span class="nx">postDefClass</span><span class="p">,</span>
-    <span class="nx">viz</span><span class="p">,</span>
+<span class="nx">Map</span><span class="p">.</span><span class="nx">addLayer</span><span class="p">(</span><span class="nx">postDefClass</span><span class="p">.</span><span class="nx">randomVisualizer</span><span class="p">(),</span>
+    <span class="p">{},</span>
     <span class="s1">&#39;Post-Deforestation Class&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
