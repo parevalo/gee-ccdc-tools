@@ -24,7 +24,7 @@ specific date we can use the 'getLcAtDate' function in our API.
     var utils = require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/api')
     var classificationStack = '/PATH/TO/IMAGE/STACK'
     var dateOfClassification = '2014-03-27'
-    var matchingDate = classUtils.getLcAtDate(classificationStack,
+    var matchingDate = utils.Classification.getLcAtDate(classificationStack,
         dateOfClassification)
 
 This can easily be extended to map change between two dates. In this
