@@ -1,87 +1,48 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Part 2: Prepare training data &mdash; gee-ccdc-tools 0.0.1 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-
-  
-  
-  
-  
-
-  
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script src="../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Part 3: Classify time series segments" href="classify.html" />
     <link rel="prev" title="Part 1: Submit Change Detection" href="change.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> gee-ccdc-tools
           
-
-          
+          <a href="../index.html" class="icon icon-home">
+            gee-ccdc-tools
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../background.html">Background</a></li>
 </ul>
@@ -110,79 +71,39 @@
 <li class="toctree-l1"><a class="reference internal" href="../api/api.html">API REFERENCE</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">gee-ccdc-tools</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="../lctut.html">Land cover tutorial (API)</a> &raquo;</li>
-        
-      <li>Part 2: Prepare training data</li>
-    
-    
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../lctut.html">Land cover tutorial (API)</a></li>
+      <li class="breadcrumb-item active">Part 2: Prepare training data</li>
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/lctutorial/training.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="part-2-prepare-training-data">
-<h1>Part 2: Prepare training data<a class="headerlink" href="#part-2-prepare-training-data" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="part-2-prepare-training-data">
+<h1>Part 2: Prepare training data<a class="headerlink" href="#part-2-prepare-training-data" title="Permalink to this heading"></a></h1>
 <p>The second step in performing land cover analysis using CCDC is
 collecting training data. There are a few requirements for the training
 data for it to work with the rest of the process. This tutorial
 demonstrates how to ensure your data meets these requirements.</p>
-<div class="section" id="training-data-requirements">
-<h2>Training data requirements:<a class="headerlink" href="#training-data-requirements" title="Permalink to this headline">¶</a></h2>
+<section id="training-data-requirements">
+<h2>Training data requirements:<a class="headerlink" href="#training-data-requirements" title="Permalink to this heading"></a></h2>
 <ul class="simple">
 <li><p>The data must be an Earth Engine FeatureCollection of point
 geometries.</p></li>
@@ -191,17 +112,17 @@ the associated land cover.</p></li>
 <li><p>An attribute in each point must contain a year that corresponds to
 the land cover label.</p></li>
 </ul>
-</div>
-<div class="section" id="optional-additional-steps">
-<h2>Optional additional steps<a class="headerlink" href="#optional-additional-steps" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="optional-additional-steps">
+<h2>Optional additional steps<a class="headerlink" href="#optional-additional-steps" title="Permalink to this heading"></a></h2>
 <ul class="simple">
 <li><p>The predictor data as attributes for each point and for the year that
 corresponds to the land cover label.</p></li>
 <li><p>Unique sample IDs as attributes</p></li>
 </ul>
-</div>
-<div class="section" id="importing-your-training-data-as-an-earth-engine-asset">
-<h2>Importing your training data as an Earth Engine Asset<a class="headerlink" href="#importing-your-training-data-as-an-earth-engine-asset" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="importing-your-training-data-as-an-earth-engine-asset">
+<h2>Importing your training data as an Earth Engine Asset<a class="headerlink" href="#importing-your-training-data-as-an-earth-engine-asset" title="Permalink to this heading"></a></h2>
 <p>I am not going to go into details, as that has been documented in depth
 on <a class="reference external" href="https://developers.google.com/earth-engine/importing">Google’s Developer
 Page</a>. However,
@@ -209,7 +130,7 @@ it’s worth making sure your data is the correct format. You can do that
 by printing out the first feature. Note the params object contains
 parameters for classification and was defined at the beginning of this
 tutorial.</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">ee</span><span class="p">.</span><span class="nx">FeatureCollection</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">trainingPath</span><span class="p">)</span>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span><span class="w"> </span><span class="nx">trainingData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">ee</span><span class="p">.</span><span class="nx">FeatureCollection</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">trainingPath</span><span class="p">)</span>
 <span class="nx">print</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">first</span><span class="p">())</span>
 </pre></div>
 </div>
@@ -218,23 +139,27 @@ Select the feature and then select ‘geometry’. Make sure the the ‘type’
 is ‘Point’, like in the figure below. If it is anything else (such as
 Rectangle or Polygon) then your must convert your data to points before
 continuing.</p>
-</div>
-<div class="section" id="creating-a-numeric-land-cover-attribute">
-<h2>Creating a numeric land cover attribute<a class="headerlink" href="#creating-a-numeric-land-cover-attribute" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="creating-a-numeric-land-cover-attribute">
+<h2>Creating a numeric land cover attribute<a class="headerlink" href="#creating-a-numeric-land-cover-attribute" title="Permalink to this heading"></a></h2>
 <p>The land cover label must be numeric, so it cannot be a string (such as
 “forest”) or a numeric string (or a number that is written in string
 format). To check the type of your attribute select the ‘JSON’ button on
 the right side of the console to expand the json representation of the
 feature. The button is circled in red below:</p>
-<div class="figure align-default" id="id1">
+<figure class="align-default" id="id1">
 <img alt="img1" src="../_images/training1.png" />
-<p class="caption"><span class="caption-text">img1</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
-</div>
+<figcaption>
+<p><span class="caption-text">img1</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
 <p>You should see the JSON of the feature appear:</p>
-<div class="figure align-default" id="id2">
+<figure class="align-default" id="id2">
 <img alt="img2" src="../_images/training2.png" />
-<p class="caption"><span class="caption-text">img2</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
-</div>
+<figcaption>
+<p><span class="caption-text">img2</span><a class="headerlink" href="#id2" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
 <p>Note that my feature has three attributes: lc_string, numeric, and
 numeric_string. The lc_string attribute will not work because the
 classifiers require numeric class property. In the first picture, where
@@ -254,20 +179,20 @@ are 7 classes: Bare, Developed, Forest, Herbaceous, Shrub, Snow/Ice,
 and Water in the attribute ‘LC_Class’. Here we will redefine this
 attribute to be numeric 1-7.</p>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">print</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">aggregate_histogram</span><span class="p">(</span><span class="s1">&#39;LC_Class&#39;</span><span class="p">))</span>
-<span class="nx">trainingData</span>  <span class="o">=</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">remap</span><span class="p">([</span><span class="s1">&#39;Bare&#39;</span><span class="p">,</span><span class="s1">&#39;Developed&#39;</span><span class="p">,</span><span class="s1">&#39;Forest&#39;</span><span class="p">,</span><span class="s1">&#39;Herbaceous&#39;</span><span class="p">,</span><span class="s1">&#39;Shrub&#39;</span><span class="p">,</span><span class="s1">&#39;Snow/Ice&#39;</span><span class="p">,</span><span class="s1">&#39;Water&#39;</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span><span class="s1">&#39;LC_Class&#39;</span><span class="p">)</span>
+<span class="nx">trainingData</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">remap</span><span class="p">([</span><span class="s1">&#39;Bare&#39;</span><span class="p">,</span><span class="s1">&#39;Developed&#39;</span><span class="p">,</span><span class="s1">&#39;Forest&#39;</span><span class="p">,</span><span class="s1">&#39;Herbaceous&#39;</span><span class="p">,</span><span class="s1">&#39;Shrub&#39;</span><span class="p">,</span><span class="s1">&#39;Snow/Ice&#39;</span><span class="p">,</span><span class="s1">&#39;Water&#39;</span><span class="p">],[</span><span class="mf">1</span><span class="p">,</span><span class="mf">2</span><span class="p">,</span><span class="mf">3</span><span class="p">,</span><span class="mf">4</span><span class="p">,</span><span class="mf">5</span><span class="p">,</span><span class="mf">6</span><span class="p">,</span><span class="mf">7</span><span class="p">],</span><span class="s1">&#39;LC_Class&#39;</span><span class="p">)</span>
 <span class="nx">print</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">aggregate_histogram</span><span class="p">(</span><span class="s1">&#39;LC_Class&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>This can also be done using the ‘remapLC’ function in our API. See the <a class="reference external" href="https://gee-tutorials.readthedocs.io/en/latest/api/api.html">API documentation</a> for a full description of available functions.</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">remapLC</span><span class="p">(</span>
-    <span class="nx">trainingData</span><span class="p">,</span> <span class="s1">&#39;LC_Class&#39;</span><span class="p">,</span> <span class="s1">&#39;LC_Class&#39;</span><span class="p">,[</span><span class="s1">&#39;Bare&#39;</span><span class="p">,</span><span class="s1">&#39;Developed&#39;</span><span class="p">,</span><span class="s1">&#39;Forest&#39;</span><span class="p">,</span><span class="s1">&#39;Herbaceous&#39;</span><span class="p">,</span><span class="s1">&#39;Shrub&#39;</span><span class="p">,</span><span class="s1">&#39;Snow/Ice&#39;</span><span class="p">,</span><span class="s1">&#39;Water&#39;</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">trainingData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">remapLC</span><span class="p">(</span>
+<span class="w">    </span><span class="nx">trainingData</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;LC_Class&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;LC_Class&#39;</span><span class="p">,[</span><span class="s1">&#39;Bare&#39;</span><span class="p">,</span><span class="s1">&#39;Developed&#39;</span><span class="p">,</span><span class="s1">&#39;Forest&#39;</span><span class="p">,</span><span class="s1">&#39;Herbaceous&#39;</span><span class="p">,</span><span class="s1">&#39;Shrub&#39;</span><span class="p">,</span><span class="s1">&#39;Snow/Ice&#39;</span><span class="p">,</span><span class="s1">&#39;Water&#39;</span><span class="p">],[</span><span class="mf">1</span><span class="p">,</span><span class="mf">2</span><span class="p">,</span><span class="mf">3</span><span class="p">,</span><span class="mf">4</span><span class="p">,</span><span class="mf">5</span><span class="p">,</span><span class="mf">6</span><span class="p">,</span><span class="mf">7</span><span class="p">],[</span><span class="mf">1</span><span class="p">,</span><span class="mf">2</span><span class="p">,</span><span class="mf">3</span><span class="p">])</span>
 <span class="nx">print</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">aggregate_histogram</span><span class="p">(</span><span class="s1">&#39;LC_Class&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Note that the attribute ‘LC_Class’ is now numeric.</p>
-</div>
-<div class="section" id="add-a-year-attribute">
-<h2>Add a year attribute<a class="headerlink" href="#add-a-year-attribute" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="add-a-year-attribute">
+<h2>Add a year attribute<a class="headerlink" href="#add-a-year-attribute" title="Permalink to this heading"></a></h2>
 <p>In order to determine the CCDC coefficients to use as predictors for
 training the classifier, each point needs to have a year attribute to
 query the CCDC results by. For example, if you know a training point
@@ -276,13 +201,13 @@ be used for training. If all of your training data corresponds a certain
 year, you can add the attribute with a simple bit of code. In this
 example the training data corresponds to 2014 and it is assigned to an
 attribute named ‘year’.</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">trainingData</span>  <span class="o">=</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">feat</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="nx">feat</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;year&#39;</span><span class="p">,</span><span class="mi">2014</span><span class="p">)})</span>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">trainingData</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">feat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">feat</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;year&#39;</span><span class="p">,</span><span class="mf">2014</span><span class="p">)})</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="get-predictor-data-for-each-training-point">
-<h2>Get predictor data for each training point<a class="headerlink" href="#get-predictor-data-for-each-training-point" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="get-predictor-data-for-each-training-point">
+<h2>Get predictor data for each training point<a class="headerlink" href="#get-predictor-data-for-each-training-point" title="Permalink to this heading"></a></h2>
 <p>We need to extract predictor data for each training point before we can apply
 a classifier. We can do this either  manually right before submitting the
 classification, or we can extract the predictors in advance and store them as
@@ -294,117 +219,92 @@ CCDC coefficient image to sample from.</p>
 <p>Note: The change detection results from the previous section must be
 specified as the ‘changeResults’ parameter!</p>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Define bands to use in classification</span>
-<span class="kd">var</span> <span class="nx">bands</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">bandNames</span>
+<span class="kd">var</span><span class="w"> </span><span class="nx">bands</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">bandNames</span>
 
 <span class="c1">// Define coefficients to use in classification</span>
-<span class="kd">var</span> <span class="nx">coefs</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">coefs</span>
+<span class="kd">var</span><span class="w"> </span><span class="nx">coefs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">coefs</span>
 
 <span class="c1">// Segment ids</span>
-<span class="kd">var</span> <span class="nx">segs</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">segs</span>
+<span class="kd">var</span><span class="w"> </span><span class="nx">segs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">segs</span>
 
 <span class="c1">// Property corresponding to year of training data</span>
-<span class="kd">var</span> <span class="nx">yearProperty</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">yearProperty</span>
+<span class="kd">var</span><span class="w"> </span><span class="nx">yearProperty</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">yearProperty</span>
 
 <span class="c1">// Define path to change detection results</span>
-<span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">changeResults</span> <span class="o">=</span> <span class="s1">&#39;/path/to/change/detection/results&#39;</span>
+<span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">changeResults</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;/path/to/change/detection/results&#39;</span>
 
 <span class="c1">// Load ccd image stack with coefficients and change information</span>
-<span class="kd">var</span> <span class="nx">ccdImage</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">buildCcdImage</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">changeResults</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">segs</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">bandNames</span><span class="p">)</span>
+<span class="kd">var</span><span class="w"> </span><span class="nx">ccdImage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">utils</span><span class="p">.</span><span class="nx">CCDC</span><span class="p">.</span><span class="nx">buildCcdImage</span><span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">changeResults</span><span class="p">,</span><span class="w"> </span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">segs</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span><span class="w"> </span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">bandNames</span><span class="p">)</span>
 
-<span class="nx">print</span><span class="p">(</span><span class="s1">&#39;CCD Image:&#39;</span><span class="p">,</span> <span class="nx">ccdImage</span><span class="p">)</span>
+<span class="nx">print</span><span class="p">(</span><span class="s1">&#39;CCD Image:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">ccdImage</span><span class="p">)</span>
 
 <span class="c1">// Finally, get ancillary topographic and climate data</span>
-<span class="kd">var</span> <span class="nx">ancillary</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Inputs</span><span class="p">.</span><span class="nx">getAncillary</span><span class="p">()</span>
+<span class="kd">var</span><span class="w"> </span><span class="nx">ancillary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">utils</span><span class="p">.</span><span class="nx">Inputs</span><span class="p">.</span><span class="nx">getAncillary</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>Now that we have the CCDC image we can calculate the predictor data for
 each point, filter features that return no data, and export the results
 as an asset.</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">getTrainingCoefsAtDate</span><span class="p">(</span>
-  <span class="nx">trainingData</span><span class="p">,</span> <span class="nx">coefs</span><span class="p">,</span> <span class="nx">bands</span><span class="p">,</span> <span class="nx">yearProperty</span><span class="p">,</span> <span class="nx">ancillary</span><span class="p">,</span> <span class="nx">ccdImage</span><span class="p">,</span> <span class="nx">segs</span><span class="p">)</span>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span><span class="w"> </span><span class="nx">trainingData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">getTrainingCoefsAtDate</span><span class="p">(</span>
+<span class="w">  </span><span class="nx">trainingData</span><span class="p">,</span><span class="w"> </span><span class="nx">coefs</span><span class="p">,</span><span class="w"> </span><span class="nx">bands</span><span class="p">,</span><span class="w"> </span><span class="nx">yearProperty</span><span class="p">,</span><span class="w"> </span><span class="nx">ancillary</span><span class="p">,</span><span class="w"> </span><span class="nx">ccdImage</span><span class="p">,</span><span class="w"> </span><span class="nx">segs</span><span class="p">)</span>
 
 
 <span class="c1">// Filter points with no data</span>
-<span class="kd">var</span> <span class="nx">testBand</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">bandNames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">coefs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">ee</span><span class="p">.</span><span class="nx">Filter</span><span class="p">.</span><span class="nx">notNull</span><span class="p">([</span><span class="nx">testBand</span><span class="p">]))</span>
+<span class="kd">var</span><span class="w"> </span><span class="nx">testBand</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">bandNames</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">&#39;_&#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">coefs</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span>
+<span class="nx">trainingData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">ee</span><span class="p">.</span><span class="nx">Filter</span><span class="p">.</span><span class="nx">notNull</span><span class="p">([</span><span class="nx">testBand</span><span class="p">]))</span>
 
-<span class="nx">print</span><span class="p">(</span><span class="s1">&#39;First training point with predictors:&#39;</span><span class="p">,</span> <span class="nx">trainingData</span><span class="p">.</span><span class="nx">first</span><span class="p">())</span>
+<span class="nx">print</span><span class="p">(</span><span class="s1">&#39;First training point with predictors:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">trainingData</span><span class="p">.</span><span class="nx">first</span><span class="p">())</span>
 
 <span class="nx">Export</span><span class="p">.</span><span class="nx">table</span><span class="p">.</span><span class="nx">toAsset</span><span class="p">({</span>
-  <span class="nx">collection</span><span class="o">:</span> <span class="nx">trainingData</span><span class="p">,</span>
-  <span class="nx">description</span><span class="o">:</span> <span class="s1">&#39;trainingDataProcessed&#39;</span><span class="p">,</span>
-  <span class="nx">assetId</span><span class="o">:</span> <span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">trainingPathPredictors</span><span class="p">})</span>
+<span class="w">  </span><span class="nx">collection</span><span class="o">:</span><span class="w"> </span><span class="nx">trainingData</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">description</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;trainingDataProcessed&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">assetId</span><span class="o">:</span><span class="w"> </span><span class="nx">params</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">trainingPathPredictors</span><span class="p">})</span>
 </pre></div>
 </div>
 <p>You should now see in the feature attributes all of the predictor data
 that can be used for classification.</p>
-</div>
-<div class="section" id="add-unique-ids-as-attributes">
-<h2>Add unique IDs as attributes<a class="headerlink" href="#add-unique-ids-as-attributes" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="add-unique-ids-as-attributes">
+<h2>Add unique IDs as attributes<a class="headerlink" href="#add-unique-ids-as-attributes" title="Permalink to this heading"></a></h2>
 <p>Another optional, but recommended, step is assigning each sample with a
 unique ID as an attribute. EE gives each point an ID, but they can be
 long and seemingly random. The ‘assignIDs’ function in our API will
 shuffle the sample and assign a unique ID to a given attribute name.</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">trainingData</span> <span class="o">=</span> <span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">assignIds</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">,</span> <span class="s1">&#39;ID&#39;</span><span class="p">)</span>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">trainingData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">utils</span><span class="p">.</span><span class="nx">Classification</span><span class="p">.</span><span class="nx">assignIds</span><span class="p">(</span><span class="nx">trainingData</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;ID&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="classify.html" class="btn btn-neutral float-right" title="Part 3: Classify time series segments" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="change.html" class="btn btn-neutral float-left" title="Part 1: Submit Change Detection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="change.html" class="btn btn-neutral float-left" title="Part 1: Submit Change Detection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="classify.html" class="btn btn-neutral float-right" title="Part 3: Classify time series segments" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        
-        &copy; Copyright 2020, Erick Bullock, Paulo Arevalo
-
-    </p>
+    <p>&#169; Copyright 2020, Erick Bullock, Paulo Arevalo.</p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
