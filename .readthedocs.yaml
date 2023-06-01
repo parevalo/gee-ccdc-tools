@@ -5,17 +5,18 @@
 # Required
 version: 2
 
+conda:
+    environment: environment.yml
+
 # Set the version of Python and other tools you might need
 build:
-  os: ubuntu-22.04
+  os: ubuntu-20.04.4
   tools:
-    python: "3.7.13"
-    nodejs: "10.19.0"
+    python: "3.7"
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
+   builder: html
    configuration: docs/conf.py
 
-conda:
-    environment: environment.yml
 
