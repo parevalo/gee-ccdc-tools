@@ -8,12 +8,6 @@ version: 2
 conda:
     environment: environment.yml
 
-python:
-    version: 3.8
-    install:
-        - method: pip
-          path: .
-
 build:
   os: ubuntu-20.04
   tools:
