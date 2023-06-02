@@ -15,8 +15,6 @@ build:
     nodejs: "18" 
   jobs:
     post_install:
-      # Install dependencies defined in your ``package.json``
-      - npm
       # Install any other extra dependencies to build the docs
       - npm install -g jsdoc 
 # Build documentation in the docs/ directory with Sphinx
