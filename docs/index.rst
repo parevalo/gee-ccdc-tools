@@ -17,9 +17,8 @@ CCDC is used to monitor changes in land cover, land use, or condition using dens
 * Creating maps of land cover/use change
 
 
-This documentation and the tools are a work in progress. For technical issues, please use the "Issues" functionality in the official Github repository_. For general questions contact us at: parevalo@bu.edu or bullocke@bu.edu.
+This documentation and the tools are a work in progress, but keep in mind they have not been updated in a while.
 
-.. _repository: https://github.com/parevalo/gee-ccdc-tools/issues
 
 
 Contents

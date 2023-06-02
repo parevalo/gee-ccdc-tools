@@ -85,7 +85,7 @@ change detection and classification.
     // Change detection parameters
     var changeDetection = {
       breakpointBands: ['GREEN','RED','NIR','SWIR1','SWIR2'],
-      tmaskBands: ['GREEN','SWIR2'],
+      tmaskBands: ['GREEN','SWIR1'],
       minObservations: 6,
       chiSquareProbability: .99,
       minNumOfYearsScaler: 1.33,
@@ -114,7 +114,7 @@ change detection and classification.
       },
       outPath: 'projects/GLANCE/RESULTS/CLASSIFICATION/VERSION_1',
       segs: ["S1", "S2", "S3", "S4", "S5", "S6"],
-      trainingPath: projects/GLANCE/TRAINING/MASTER/NA/NA_V1/NA_Training_Master_V1_NO_LCMAP_2021_03_17',
+      trainingPath: 'projects/GLANCE/TRAINING/MASTER/NA/NA_V1/NA_Training_Master_V1_NO_LCMAP_2021_03_17',
       trainingPathPredictors: 'projects/GLANCE/TRAINING/MASTER/NA/NA_V1/NA_Training_Master_V1_NO_LCMAP_2021_03_17_predictors',
     }
 
@@ -137,7 +137,7 @@ change detection and classification.
     print(filteredLandsat.size())
 
 The console should show that there are around images in the collection. It
-should be noted that CCDC uses all available Landsat data, even if part
+should be noted that CCDC uses all available Landsat  data, even if part
 of the image is cloudy! That is because there can be many usable,
 cloud-free pixels even if a majority of the image is cloudy. Since CCDC
 operates on the pixel time series, those observations are still usable.
