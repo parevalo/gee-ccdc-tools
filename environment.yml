@@ -4,7 +4,7 @@ channels:
 dependencies:
     # Base
     - pip
-    - python>=3.7
+    - python>=3.8
     - pandoc
     - pip:
         - sphinx
