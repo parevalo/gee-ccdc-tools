@@ -1,3 +1,27 @@
-requirements_file: docs/requirements.txt
+# .readthedocs.yaml
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+# Required
+version: 2
+
+conda:
+    environment: environment.yml
+
+python:
+    version: 3.8
+    install:
+        - method: pip
+          path: .
+
 build:
-  image: latest
+  os: ubuntu-20.04
+  tools:
+    python: "miniconda3-4.7"
+
+# Build documentation in the docs/ directory with Sphinx
+sphinx:
+   builder: html
+   configuration: docs/conf.py
+
+
